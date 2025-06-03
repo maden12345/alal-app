@@ -213,17 +213,17 @@
     gap: 8px;
 }
 
-.message-item {
+.message {
     display: flex;
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     animation: messageSlide 0.3s ease-out;
 }
 
-.message-item.own {
+.message.sent {
     justify-content: flex-end;
 }
 
-.message-item.other {
+.message.received {
     justify-content: flex-start;
 }
 
@@ -233,16 +233,19 @@
     border-radius: 18px;
     position: relative;
     word-wrap: break-word;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
-.message-item.own .message-bubble {
-    background: #007aff;
+.message.sent .message-bubble {
+    background: rgba(0, 122, 255, 0.8);
     color: white;
     border-bottom-right-radius: 4px;
 }
 
-.message-item.other .message-bubble {
-    background: #e9e9eb;
+.message.received .message-bubble {
+    background: rgba(255, 255, 255, 0.9);
     color: #000;
     border-bottom-left-radius: 4px;
 }
@@ -711,6 +714,9 @@ function loadMessages() {
                 messageDiv.className = `message ${msg.sender === '{{ session.username }}' ? 'sent' : 'received'}`;
                 messageDiv.setAttribute('data-message-id', msg.id);
 
+                const messageBubble = document.createElement('div');
+                messageBubble.className = 'message-bubble';
+
                 let messageContent = '';
                 if (msg.is_file && msg.file_path) {
                     const fileName = msg.file_name || 'Dosya';
@@ -720,9 +726,9 @@ function loadMessages() {
                         messageContent = `
                             <div class="file-message">
                                 <img src="/static/${msg.file_path}" alt="${fileName}" 
-                                     style="max-width: 300px; max-height: 200px; border-radius: 8px; cursor: pointer;"
+                                     class="message-image"
                                      onclick="openImageModal('/static/${msg.file_path}')">
-                                <div class="file-caption">${msg.message}</div>
+                                ${msg.message ? `<div class="file-caption">${msg.message}</div>` : ''}
                             </div>
                         `;
                     } else if (['mp4', 'avi', 'mov', 'mkv', 'wmv', 'flv', 'webm'].includes(fileExtension)) {
@@ -732,22 +738,22 @@ function loadMessages() {
                                     <source src="/static/${msg.file_path}" type="video/${fileExtension}">
                                     Tarayıcınız video oynatmayı desteklemiyor.
                                 </video>
-                                <div class="file-caption">${msg.message}</div>
+                                ${msg.message ? `<div class="file-caption">${msg.message}</div>` : ''}
                             </div>
                         `;
                     } else {
                         messageContent = `
                             <div class="file-message">
                                 <a href="/static/${msg.file_path}" download="${fileName}" 
-                                   style="color: #4ecdc4; text-decoration: none;">
+                                   style="color: #007aff; text-decoration: none;">
                                     📎 ${fileName}
                                 </a>
-                                <div class="file-caption">${msg.message}</div>
+                                ${msg.message ? `<div class="file-caption">${msg.message}</div>` : ''}
                             </div>
                         `;
                     }
                 } else {
-                    messageContent = `<div class="message-text">${msg.message}</div>`;
+                    messageContent = `<p class="message-text">${msg.message}</p>`;
                 }
 
                 const timestamp = new Date(msg.timestamp).toLocaleTimeString('tr-TR', {
@@ -756,23 +762,16 @@ function loadMessages() {
                 });
 
                 const readStatus = msg.sender === '{{ session.username }}' && msg.read ? 
-                    '<span style="color: #4ecdc4; font-size: 12px;">✓✓</span>' : 
-                    '<span style="color: #999; font-size: 12px;">✓</span>';
+                    '<span class="status-read">✓✓</span>' : 
+                    '<span class="status-sent">✓</span>';
 
-                messageDiv.innerHTML = `
+                messageBubble.innerHTML = `
                     ${messageContent}
-                    <div class="message-footer">
-                        <span class="timestamp">${timestamp}</span>
-                        ${msg.sender === '{{ session.username }}' ? readStatus : ''}
-                        ${msg.sender === '{{ session.username }}' ? `<button onclick="deleteMessage(${msg.id})" class="delete-btn">🗑️</button>` : ''}
-                    </div>
-                    <div class="reactions">
-                        <button onclick="addReaction(${msg.id}, '❤️')" class="reaction-btn">❤️</button>
-                        <button onclick="addReaction(${msg.id}, '😊')" class="reaction-btn">😊</button>
-                        <button onclick="addReaction(${msg.id}, '👍')" class="reaction-btn">👍</button>
-                    </div>
+                    <div class="message-time">${timestamp}</div>
+                    ${msg.sender === '{{ session.username }}' ? `<div class="message-status">${readStatus}</div>` : ''}
                 `;
 
+                messageDiv.appendChild(messageBubble);
                 messagesDiv.appendChild(messageDiv);
             });
 
@@ -938,6 +937,50 @@ checkBlockStatus();
 setInterval(loadMessages, 3000);
 setInterval(updateUserStatus, 10000);
 setInterval(checkTypingStatus, 1000);
+
+function deleteMessage(messageId) {
+    if (!confirm('Bu mesajı silmek istediğinizden emin misiniz?')) {
+        return;
+    }
+
+    fetch('/delete_message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message_id: messageId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadMessages();
+        } else {
+            alert('Mesaj silinirken hata oluştu: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting message:', error);
+        alert('Mesaj silinirken hata oluştu');
+    });
+}
+
+function addReaction(messageId, emoji) {
+    fetch('/add_reaction', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            message_id: messageId,
+            emoji: emoji 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadMessages();
+        }
+    })
+    .catch(error => {
+        console.error('Error adding reaction:', error);
+    });
+}
 
 // Focus on input
 document.getElementById('message-input').focus();
