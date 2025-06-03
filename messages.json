@@ -134,7 +134,8 @@
     "recipient": "ayca.bül",
     "message": "aa",
     "timestamp": "2025-06-03T18:23:18.526762",
-    "reactions": {}
+    "reactions": {},
+    "read": true
   },
   {
     "id": 15,
@@ -142,7 +143,8 @@
     "recipient": "ayca.bül",
     "message": "a",
     "timestamp": "2025-06-03T18:23:19.876292",
-    "reactions": {}
+    "reactions": {},
+    "read": true
   },
   {
     "id": 16,
@@ -150,6 +152,31 @@
     "recipient": "ayca.bül",
     "message": "a",
     "timestamp": "2025-06-03T18:23:20.772722",
+    "reactions": {},
+    "read": true
+  },
+  {
+    "id": 17,
+    "sender": "ayca.bül",
+    "recipient": "irem.cayr1",
+    "message": "kdnfglkdmgklmlg",
+    "timestamp": "2025-06-03T18:27:35.775424",
+    "reactions": {}
+  },
+  {
+    "id": 18,
+    "sender": "ayca.bül",
+    "recipient": "irem.cayr1",
+    "message": "kdnfglkdmgklmlgdfg",
+    "timestamp": "2025-06-03T18:27:35.912669",
+    "reactions": {}
+  },
+  {
+    "id": 19,
+    "sender": "ayca.bül",
+    "recipient": "irem.cayr1",
+    "message": "fdgd",
+    "timestamp": "2025-06-03T18:27:36.799957",
     "reactions": {}
   }
 ]
