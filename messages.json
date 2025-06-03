@@ -22,5 +22,16 @@
     "message": "okk",
     "timestamp": "2025-06-03T17:44:40.804375",
     "reactions": {}
+  },
+  {
+    "id": 3,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "📎 Dosya paylaştı: Görüntü 26.05.2025 22.47.jpeg",
+    "file_path": "uploads/irem.cayr1_20250603_180721_Goruntu_26.05.2025_22.47.jpeg",
+    "file_name": "Görüntü 26.05.2025 22.47.jpeg",
+    "timestamp": "2025-06-03T18:07:21.504587",
+    "reactions": {},
+    "is_file": true
   }
 ]
