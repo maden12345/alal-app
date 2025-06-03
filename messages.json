@@ -107,7 +107,8 @@
     "recipient": "irem.cayr1",
     "message": "as",
     "timestamp": "2025-06-03T18:17:57.196016",
-    "reactions": {}
+    "reactions": {},
+    "read": true
   },
   {
     "id": 12,
@@ -115,7 +116,8 @@
     "recipient": "irem.cayr1",
     "message": "s",
     "timestamp": "2025-06-03T18:17:57.540279",
-    "reactions": {}
+    "reactions": {},
+    "read": true
   },
   {
     "id": 13,
@@ -123,6 +125,31 @@
     "recipient": "irem.cayr1",
     "message": "as",
     "timestamp": "2025-06-03T18:17:58.707174",
+    "reactions": {},
+    "read": true
+  },
+  {
+    "id": 14,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "aa",
+    "timestamp": "2025-06-03T18:23:18.526762",
+    "reactions": {}
+  },
+  {
+    "id": 15,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "a",
+    "timestamp": "2025-06-03T18:23:19.876292",
+    "reactions": {}
+  },
+  {
+    "id": 16,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "a",
+    "timestamp": "2025-06-03T18:23:20.772722",
     "reactions": {}
   }
 ]
