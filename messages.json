@@ -44,6 +44,85 @@
     "recipient": "ayca.bül",
     "message": "sa",
     "timestamp": "2025-06-03T18:13:15.989020",
+    "reactions": {},
+    "read": true
+  },
+  {
+    "id": 5,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "mehrabbaa",
+    "timestamp": "2025-06-03T18:16:57.532643",
+    "reactions": {},
+    "read": true
+  },
+  {
+    "id": 6,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "sdfsf",
+    "timestamp": "2025-06-03T18:17:07.034323",
+    "reactions": {},
+    "read": true
+  },
+  {
+    "id": 7,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "sdf",
+    "timestamp": "2025-06-03T18:17:09.026858",
+    "reactions": {},
+    "read": true
+  },
+  {
+    "id": 8,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "dsf",
+    "timestamp": "2025-06-03T18:17:11.065965",
+    "reactions": {},
+    "read": true
+  },
+  {
+    "id": 9,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "sdf",
+    "timestamp": "2025-06-03T18:17:12.271209",
+    "reactions": {},
+    "read": true
+  },
+  {
+    "id": 10,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "fdsfs",
+    "timestamp": "2025-06-03T18:17:13.521776",
+    "reactions": {},
+    "read": true
+  },
+  {
+    "id": 11,
+    "sender": "ayca.bül",
+    "recipient": "irem.cayr1",
+    "message": "as",
+    "timestamp": "2025-06-03T18:17:57.196016",
+    "reactions": {}
+  },
+  {
+    "id": 12,
+    "sender": "ayca.bül",
+    "recipient": "irem.cayr1",
+    "message": "s",
+    "timestamp": "2025-06-03T18:17:57.540279",
+    "reactions": {}
+  },
+  {
+    "id": 13,
+    "sender": "ayca.bül",
+    "recipient": "irem.cayr1",
+    "message": "as",
+    "timestamp": "2025-06-03T18:17:58.707174",
     "reactions": {}
   }
 ]
