@@ -26,32 +26,54 @@
             justify-content: center;
             min-width: 18px;
         }
+
+        .message-notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            z-index: 1001;
+        }
     </style>
 
     <script>
         function updateMessageNotifications() {
-            if (!document.querySelector('body').getAttribute('data-username')) return;
+            const username = document.querySelector('body').getAttribute('data-username');
+            if (!username) return;
 
             fetch('/get_unread_message_count')
                 .then(response => response.json())
                 .then(data => {
                     const badge = document.getElementById('message-notification-badge');
-                    if (data.count > 0) {
+                    if (badge && data.count > 0) {
                         badge.textContent = data.count;
                         badge.style.display = 'flex';
-                    } else {
+                    } else if (badge) {
                         badge.style.display = 'none';
                     }
                 })
-                .catch(() => {
-                    document.getElementById('message-notification-badge').style.display = 'none';
+                .catch(error => {
+                    console.log('Message notification error:', error);
+                    const badge = document.getElementById('message-notification-badge');
+                    if (badge) {
+                        badge.style.display = 'none';
+                    }
                 });
         }
 
-        // Sayfa yüklendiğinde ve her 5 saniyede bir kontrol et
+        // Sayfa yüklendiğinde ve her 3 saniyede bir kontrol et
         document.addEventListener('DOMContentLoaded', function() {
             updateMessageNotifications();
-            setInterval(updateMessageNotifications, 5000);
+            setInterval(updateMessageNotifications, 3000);
         });
     </script>
     <style>
@@ -426,7 +448,10 @@
                         </div>
                     </a>
                     <button onclick="confirmLogout()" class="nav-btn logout">🚪</button>
-                    <a href="{{ url_for('messages') }}" class="nav-btn messages-btn">💬</a>
+                    <div class="nav-icon-container">
+                        <a href="{{ url_for('messages') }}" class="nav-btn messages-btn">💬</a>
+                        <span id="message-notification-badge" class="message-notification-badge">0</span>
+                    </div>
                 {% endif %}
             </div>
         </div>
