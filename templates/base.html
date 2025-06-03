@@ -393,7 +393,7 @@
         }
     </style>
 </head>
-<body>
+<body {% if session.username %}data-username="{{ session.username }}"{% endif %}>
     {% if session.username or session.guest %}
     <div class="header mobile-header">
         <div class="header-content">

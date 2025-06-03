@@ -1408,6 +1408,32 @@ def get_unread_message_count():
     
     return jsonify({'count': unread_count})
 
+@app.route('/delete_conversation', methods=['POST'])
+def delete_conversation():
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Oturum açmanız gerekli'})
+
+    data = request.get_json()
+    other_username = data.get('username')
+    current_user = session['username']
+
+    if not other_username:
+        return jsonify({'success': False, 'error': 'Kullanıcı adı gerekli'})
+
+    messages = load_messages()
+    
+    # Remove all messages between current user and the other user
+    filtered_messages = []
+    for msg in messages:
+        # Keep messages that are not between these two users
+        if not ((msg['sender'] == current_user and msg['recipient'] == other_username) or 
+                (msg['sender'] == other_username and msg['recipient'] == current_user)):
+            filtered_messages.append(msg)
+    
+    save_messages(filtered_messages)
+    
+    return jsonify({'success': True, 'message': 'Sohbet silindi'})
+
 @app.route('/get_all_videos')
 def get_all_videos():
     posts = load_posts()

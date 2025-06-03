@@ -55,7 +55,12 @@
                             </span>
                         </div>
                     </div>
-                    <div class="conversation-arrow">➤</div>
+                    <div class="conversation-actions">
+                        <button onclick="deleteConversation('{{ username }}', event)" class="delete-conversation-btn" title="Sohbeti Sil">
+                            🗑️
+                        </button>
+                        <div class="conversation-arrow">➤</div>
+                    </div>
                 </div>
             {% endfor %}
         </div>
@@ -162,10 +167,36 @@
     color: #777;
 }
 
+.conversation-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
 .conversation-arrow {
     color: #ddd;
     font-size: 18px;
-    margin-left: 10px;
+}
+
+.delete-conversation-btn {
+    background: none;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    opacity: 0;
+    transition: all 0.2s ease;
+    color: #ff4757;
+}
+
+.conversation-item:hover .delete-conversation-btn {
+    opacity: 1;
+}
+
+.delete-conversation-btn:hover {
+    background: rgba(255, 71, 87, 0.1);
+    transform: scale(1.1);
 }
 
 .search-user-item {
@@ -297,6 +328,31 @@ document.addEventListener('click', function(e) {
 
 // Search input event
 document.getElementById('search-users').addEventListener('input', searchUsers);
+
+function deleteConversation(username, event) {
+    event.stopPropagation(); // Prevent navigation to chat
+    
+    if (confirm(`${username} ile olan sohbeti silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
+        fetch('/delete_conversation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Reload the page to update the conversation list
+                window.location.reload();
+            } else {
+                alert('Sohbet silinirken hata oluştu: ' + (data.error || 'Bilinmeyen hata'));
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting conversation:', error);
+            alert('Sohbet silinirken hata oluştu');
+        });
+    }
+}
 </script>
 
 {% endblock %}
