@@ -1,3 +1,4 @@
+
 {% extends "base.html" %}
 
 {% block title %}{{ recipient }} ile Sohbet - ChatNell{% endblock %}
@@ -558,6 +559,16 @@ let isTyping = false;
 let isUserBlocked = false;
 let selectedImageFile = null;
 
+function scrollToBottom() {
+    const messagesContainer = document.getElementById('messages-container');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
+
+function focusInput() {
+    const messageInput = document.getElementById('message-input');
+    messageInput.focus();
+}
+
 function updateUserStatus() {
     fetch(`/get_user_status/${recipient}`)
         .then(response => response.json())
@@ -604,7 +615,6 @@ function checkBlockStatus() {
             }
         })
         .catch(() => {
-            // API endpoint yoksa varsayılan durumu koru
             isUserBlocked = false;
             document.getElementById('message-input-area').style.display = 'block';
             document.getElementById('blocked-warning').style.display = 'none';
@@ -648,7 +658,7 @@ function handleTyping() {
                 recipient: recipient,
                 typing: true 
             })
-        }).catch(() => {}); // Silent fail
+        }).catch(() => {});
     }
 
     clearTimeout(typingTimer);
@@ -661,7 +671,7 @@ function handleTyping() {
                 recipient: recipient,
                 typing: false 
             })
-        }).catch(() => {}); // Silent fail
+        }).catch(() => {});
     }, 2000);
 }
 
@@ -694,7 +704,8 @@ function loadMessages() {
     fetch(`/get_messages/${recipient}`)
         .then(response => response.json())
         .then(messages => {
-            // Sadece yeni mesajlar varsa güncelle
+            const previousMessageCount = currentMessages.length;
+            
             if (JSON.stringify(messages) === JSON.stringify(currentMessages)) {
                 return;
             }
@@ -775,12 +786,11 @@ function loadMessages() {
                 messagesDiv.appendChild(messageDiv);
             });
 
-            // Sadece en alttaysak scroll yap
-            if (wasAtBottom || messages.length === 0) {
-                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            // Yeni mesaj geldiğinde veya en alttaysak scroll yap
+            if (wasAtBottom || messages.length > previousMessageCount) {
+                setTimeout(scrollToBottom, 100);
             }
 
-            // Mark messages as read
             fetch('/mark_messages_read', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -824,6 +834,7 @@ function sendMessage() {
         if (data.success) {
             messageInput.value = '';
             autoResize(messageInput);
+            focusInput(); // Enter'dan sonra tekrar odaklan
             loadMessages();
         } else {
             alert('Mesaj gönderilemedi: ' + data.error);
@@ -874,7 +885,6 @@ function sendImageMessage() {
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            // If there's a caption, send it as a separate message
             if (caption) {
                 return fetch('/send_message', {
                     method: 'POST',
@@ -900,7 +910,6 @@ function sendImageMessage() {
 }
 
 function openImageModal(imageSrc) {
-    // Create a simple image modal for viewing
     const modal = document.createElement('div');
     modal.style.cssText = `
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -938,51 +947,7 @@ setInterval(loadMessages, 3000);
 setInterval(updateUserStatus, 10000);
 setInterval(checkTypingStatus, 1000);
 
-function deleteMessage(messageId) {
-    if (!confirm('Bu mesajı silmek istediğinizden emin misiniz?')) {
-        return;
-    }
-
-    fetch('/delete_message', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message_id: messageId })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            loadMessages();
-        } else {
-            alert('Mesaj silinirken hata oluştu: ' + data.error);
-        }
-    })
-    .catch(error => {
-        console.error('Error deleting message:', error);
-        alert('Mesaj silinirken hata oluştu');
-    });
-}
-
-function addReaction(messageId, emoji) {
-    fetch('/add_reaction', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-            message_id: messageId,
-            emoji: emoji 
-        })
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.success) {
-            loadMessages();
-        }
-    })
-    .catch(error => {
-        console.error('Error adding reaction:', error);
-    });
-}
-
 // Focus on input
-document.getElementById('message-input').focus();
+focusInput();
 </script>
 {% endblock %}

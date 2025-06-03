@@ -1391,6 +1391,23 @@ def video_player():
     is_guest = 'guest' in session
     return render_template('video_player.html', is_guest=is_guest)
 
+@app.route('/get_unread_message_count')
+def get_unread_message_count():
+    if 'username' not in session:
+        return jsonify({'count': 0})
+    
+    messages = load_messages()
+    current_user = session['username']
+    unread_count = 0
+    
+    for msg in messages:
+        if (msg['recipient'] == current_user and 
+            not msg.get('read', False) and 
+            not msg.get('deleted', False)):
+            unread_count += 1
+    
+    return jsonify({'count': unread_count})
+
 @app.route('/get_all_videos')
 def get_all_videos():
     posts = load_posts()

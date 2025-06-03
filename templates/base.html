@@ -4,8 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ChatNell{% endblock %}</title>
-</head>
-<body style="margin: 0; padding: 0;">
+    <style>
+        .nav-icon-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ff3b30;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 18px;
+        }
+    </style>
+
+    <script>
+        function updateMessageNotifications() {
+            if (!document.querySelector('body').getAttribute('data-username')) return;
+
+            fetch('/get_unread_message_count')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('message-notification-badge');
+                    if (data.count > 0) {
+                        badge.textContent = data.count;
+                        badge.style.display = 'flex';
+                    } else {
+                        badge.style.display = 'none';
+                    }
+                })
+                .catch(() => {
+                    document.getElementById('message-notification-badge').style.display = 'none';
+                });
+        }
+
+        // Sayfa yüklendiğinde ve her 5 saniyede bir kontrol et
+        document.addEventListener('DOMContentLoaded', function() {
+            updateMessageNotifications();
+            setInterval(updateMessageNotifications, 5000);
+        });
+    </script>
     <style>
         * {
             margin: 0;
@@ -397,7 +445,7 @@
 
         {% block content %}{% endblock %}
     </div>
-    
+
     {% if session.username %}
     <script>
     // Load profile photo for header
@@ -433,9 +481,9 @@
         .then(([friendData, notifications]) => {
             const notificationList = document.getElementById('notification-list');
             const notificationCount = document.getElementById('notification-count');
-            
+
             let allNotifications = [];
-            
+
             // Add friend requests
             if (friendData.received_requests && friendData.received_requests.length > 0) {
                 allNotifications = allNotifications.concat(friendData.received_requests.map(username => ({
@@ -445,19 +493,19 @@
                     timestamp: new Date().toISOString()
                 })));
             }
-            
+
             // Add like/comment notifications
             if (notifications && notifications.length > 0) {
                 allNotifications = allNotifications.concat(notifications);
             }
-            
+
             // Sort by timestamp (newest first)
             allNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
-            
+
             if (allNotifications.length > 0) {
                 notificationCount.textContent = allNotifications.length;
                 notificationCount.style.display = 'flex';
-                
+
                 notificationList.innerHTML = allNotifications.map(notification => {
                     if (notification.type === 'friend_request') {
                         return `
@@ -501,7 +549,7 @@
             document.getElementById('notification-list').innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">Bildirimler yüklenirken hata oluştu</div>';
         });
     }
-    
+
     function getTimeAgo(timestamp) {
         const now = new Date();
         const time = new Date(timestamp);
@@ -509,7 +557,7 @@
         const diffMins = Math.floor(diffMs / 60000);
         const diffHours = Math.floor(diffMs / 3600000);
         const diffDays = Math.floor(diffMs / 86400000);
-        
+
         if (diffMins < 1) return 'Şimdi';
         if (diffMins < 60) return `${diffMins} dakika önce`;
         if (diffHours < 24) return `${diffHours} saat önce`;
