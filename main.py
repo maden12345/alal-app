@@ -818,6 +818,7 @@ def upload_file():
 
     file = request.files['file']
     recipient = request.form.get('recipient')
+    caption = request.form.get('caption', '')
 
     if file.filename == '' or not recipient:
         return jsonify({'success': False, 'error': 'Geçersiz veri'})
@@ -829,11 +830,20 @@ def upload_file():
 
         # Dosya paylaşımını mesaj olarak kaydet
         messages = load_messages()
+        
+        # Check if it's an image file
+        is_image = file.filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.webp'))
+        
+        if is_image and caption:
+            message_text = caption
+        else:
+            message_text = f'📎 Dosya paylaştı: {file.filename}'
+
         new_message = {
             'id': len(messages),
             'sender': session['username'],
             'recipient': recipient,
-            'message': f'📎 Dosya paylaştı: {file.filename}',
+            'message': message_text,
             'file_path': f"uploads/{filename}",
             'file_name': file.filename,
             'timestamp': datetime.now().isoformat(),
@@ -847,6 +857,161 @@ def upload_file():
         return jsonify({'success': True, 'file_path': f"uploads/{filename}"})
 
     return jsonify({'success': False, 'error': 'Desteklenmeyen dosya formatı'})
+
+@app.route('/block_user', methods=['POST'])
+def block_user():
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Oturum açmanız gerekli'})
+
+    data = request.get_json()
+    target_user = data.get('username')
+    current_user = session['username']
+
+    if not target_user or target_user == current_user:
+        return jsonify({'success': False, 'error': 'Geçersiz kullanıcı'})
+
+    users = load_users()
+    if target_user not in users:
+        return jsonify({'success': False, 'error': 'Kullanıcı bulunamadı'})
+
+    # Load or create blocked users data
+    blocked_file = 'blocked_users.json'
+    if os.path.exists(blocked_file):
+        with open(blocked_file, 'r', encoding='utf-8') as f:
+            blocked_users = json.load(f)
+    else:
+        blocked_users = {}
+
+    if current_user not in blocked_users:
+        blocked_users[current_user] = []
+
+    if target_user not in blocked_users[current_user]:
+        blocked_users[current_user].append(target_user)
+
+    with open(blocked_file, 'w', encoding='utf-8') as f:
+        json.dump(blocked_users, f, ensure_ascii=False, indent=2)
+
+    return jsonify({'success': True, 'message': 'Kullanıcı engellendi'})
+
+@app.route('/unblock_user', methods=['POST'])
+def unblock_user():
+    if 'username' not in session:
+        return jsonify({'success': False, 'error': 'Oturum açmanız gerekli'})
+
+    data = request.get_json()
+    target_user = data.get('username')
+    current_user = session['username']
+
+    if not target_user:
+        return jsonify({'success': False, 'error': 'Geçersiz kullanıcı'})
+
+    blocked_file = 'blocked_users.json'
+    if os.path.exists(blocked_file):
+        with open(blocked_file, 'r', encoding='utf-8') as f:
+            blocked_users = json.load(f)
+    else:
+        return jsonify({'success': False, 'error': 'Engellenmiş kullanıcı bulunamadı'})
+
+    if current_user in blocked_users and target_user in blocked_users[current_user]:
+        blocked_users[current_user].remove(target_user)
+
+        with open(blocked_file, 'w', encoding='utf-8') as f:
+            json.dump(blocked_users, f, ensure_ascii=False, indent=2)
+
+        return jsonify({'success': True, 'message': 'Engel kaldırıldı'})
+
+    return jsonify({'success': False, 'error': 'Kullanıcı engellenmiş değil'})
+
+@app.route('/check_block_status/<username>')
+def check_block_status(username):
+    if 'username' not in session:
+        return jsonify({'is_blocked': False})
+
+    current_user = session['username']
+    blocked_file = 'blocked_users.json'
+    
+    if os.path.exists(blocked_file):
+        with open(blocked_file, 'r', encoding='utf-8') as f:
+            blocked_users = json.load(f)
+        
+        is_blocked = current_user in blocked_users and username in blocked_users[current_user]
+        return jsonify({'is_blocked': is_blocked})
+    
+    return jsonify({'is_blocked': False})
+
+@app.route('/get_typing_status/<username>')
+def get_typing_status(username):
+    # Simple in-memory typing status - in production, you'd use Redis or similar
+    typing_file = 'typing_status.json'
+    if os.path.exists(typing_file):
+        try:
+            with open(typing_file, 'r', encoding='utf-8') as f:
+                typing_data = json.load(f)
+            
+            user_typing = typing_data.get(username, {})
+            # Check if typing status is recent (within last 3 seconds)
+            if user_typing.get('timestamp'):
+                last_update = datetime.fromisoformat(user_typing['timestamp'])
+                if (datetime.now() - last_update).total_seconds() < 3:
+                    return jsonify({'typing': user_typing.get('typing', False)})
+        except:
+            pass
+    
+    return jsonify({'typing': False})
+
+@app.route('/update_typing_status', methods=['POST'])
+def update_typing_status():
+    if 'username' not in session:
+        return jsonify({'success': False})
+
+    data = request.get_json()
+    typing = data.get('typing', False)
+    current_user = session['username']
+
+    typing_file = 'typing_status.json'
+    if os.path.exists(typing_file):
+        try:
+            with open(typing_file, 'r', encoding='utf-8') as f:
+                typing_data = json.load(f)
+        except:
+            typing_data = {}
+    else:
+        typing_data = {}
+
+    typing_data[current_user] = {
+        'typing': typing,
+        'timestamp': datetime.now().isoformat()
+    }
+
+    try:
+        with open(typing_file, 'w', encoding='utf-8') as f:
+            json.dump(typing_data, f, ensure_ascii=False, indent=2)
+    except:
+        pass
+
+    return jsonify({'success': True})
+
+@app.route('/mark_messages_read', methods=['POST'])
+def mark_messages_read():
+    if 'username' not in session:
+        return jsonify({'success': False})
+
+    data = request.get_json()
+    sender = data.get('sender')
+    current_user = session['username']
+
+    if not sender:
+        return jsonify({'success': False})
+
+    messages = load_messages()
+    
+    # Mark messages from sender to current user as read
+    for msg in messages:
+        if msg['sender'] == sender and msg['recipient'] == current_user:
+            msg['read'] = True
+
+    save_messages(messages)
+    return jsonify({'success': True})
 
 @app.route('/follow_user', methods=['POST'])
 def follow_user():

@@ -4,179 +4,266 @@
 {% block title %}{{ recipient }} ile Sohbet - ChatNell{% endblock %}
 
 {% block content %}
-<div class="card">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee;">
-        <div style="display: flex; align-items: center; gap: 15px;">
-            <h2 style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0; font-size: 1.8rem;">
-                💬 {{ recipient }} ile Sohbet
-            </h2>
-            <div id="user-status" style="font-size: 12px; padding: 4px 8px; border-radius: 12px; background: #ecf0f1; color: #7f8c8d;"></div>
+<div class="chat-container">
+    <!-- Chat Header -->
+    <div class="chat-header">
+        <div class="user-info">
+            <a href="{{ url_for('dashboard') }}" class="back-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="m15 18-6-6 6-6"/>
+                </svg>
+            </a>
+            <div class="avatar-container">
+                <div class="avatar-placeholder">{{ recipient[0].upper() }}</div>
+                <div id="user-status-dot" class="status-dot"></div>
+            </div>
+            <div class="user-details">
+                <h3>{{ recipient }}</h3>
+                <span id="user-status-text" class="status-text">Çevrimdışı</span>
+            </div>
         </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button id="block-user-btn" onclick="toggleBlockUser()" class="btn" style="background: #e74c3c; color: white; padding: 8px 12px; font-size: 12px;">
-                🚫 Engelle
+        <div class="header-actions">
+            <button id="block-user-btn" onclick="toggleBlockUser()" class="action-btn block-btn">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="4.93 4.93l14.14 14.14"/>
+                </svg>
             </button>
-            <input type="text" id="search-input" placeholder="🔍 Mesaj ara..." 
-                   style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 20px; font-size: 12px; width: 150px;">
-            <a href="{{ url_for('dashboard') }}" class="btn">← Geri Dön</a>
         </div>
     </div>
 
-    <div id="search-results" style="display: none; background: #f8f9fa; border-radius: 8px; padding: 10px; margin-bottom: 10px; max-height: 150px; overflow-y: auto;"></div>
-
-    <div id="messages-container" style="height: 450px; overflow-y: auto; border: 2px solid #eee; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: linear-gradient(135deg, #f8f9fa, #ffffff);">
-        <div id="messages"></div>
+    <!-- Messages Container -->
+    <div id="messages-container" class="messages-container">
+        <div id="messages" class="messages-list"></div>
         <div id="typing-indicator" class="typing-indicator">
-            <div class="typing-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-            </div>
-            <span id="typing-text"></span>
-        </div>
-    </div>
-
-    <div id="message-input-area" style="display: flex; gap: 10px; align-items: flex-end;">
-        <div style="flex: 1;">
-            <div style="display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap;">
-                <button onclick="insertEmoji('😀')" class="emoji-btn">😀</button>
-                <button onclick="insertEmoji('😍')" class="emoji-btn">😍</button>
-                <button onclick="insertEmoji('😂')" class="emoji-btn">😂</button>
-                <button onclick="insertEmoji('🥰')" class="emoji-btn">🥰</button>
-                <button onclick="insertEmoji('😎')" class="emoji-btn">😎</button>
-                <button onclick="insertEmoji('🤔')" class="emoji-btn">🤔</button>
-                <button onclick="insertEmoji('👍')" class="emoji-btn">👍</button>
-                <button onclick="insertEmoji('❤️')" class="emoji-btn">❤️</button>
-                <button onclick="insertEmoji('🔥')" class="emoji-btn">🔥</button>
-                <button onclick="insertEmoji('✨')" class="emoji-btn">✨</button>
-            </div>
-            <div style="position: relative;">
-                <textarea id="message-input" placeholder="Mesajınızı yazın... (Enter ile gönder, Shift+Enter ile yeni satır)" 
-                         style="width: 100%; min-height: 50px; max-height: 150px; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 14px; resize: vertical; font-family: inherit;"
-                         onkeydown="handleKeyDown(event)" oninput="handleTyping()"></textarea>
-                <div id="send-indicator" style="position: absolute; bottom: 8px; right: 12px; font-size: 12px; color: #666; display: none;">
-                    📤 Gönderiliyor...
+            <div class="typing-avatar">{{ recipient[0].upper() }}</div>
+            <div class="typing-bubble">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
                 </div>
             </div>
         </div>
-        <button onclick="sendMessage()" class="btn" style="padding: 15px 25px; height: fit-content; background: linear-gradient(135deg, #667eea, #764ba2); color: white; border: none; border-radius: 12px; transition: all 0.3s;">
-            📤 Gönder
-        </button>
     </div>
 
-    <div id="blocked-warning" style="display: none; text-align: center; padding: 20px; background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 8px; color: #721c24; margin-top: 10px;">
+    <!-- Message Input -->
+    <div id="message-input-area" class="message-input-area">
+        <div class="input-container">
+            <button class="attachment-btn" onclick="document.getElementById('image-input').click()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="9" cy="9" r="2"/>
+                    <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/>
+                </svg>
+            </button>
+            <input type="file" id="image-input" accept="image/*" style="display: none;" onchange="handleImageSelect(event)">
+            <div class="text-input-container">
+                <textarea id="message-input" placeholder="Mesaj yazın..." rows="1" onkeydown="handleKeyDown(event)" oninput="handleTyping()"></textarea>
+                <button id="send-btn" onclick="sendMessage()" class="send-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="22" y1="2" x2="11" y2="13"/>
+                        <polygon points="22,2 15,22 11,13 2,9 22,2"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Preview Modal -->
+    <div id="image-preview-modal" class="image-preview-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Görsel Gönder</h3>
+                <button onclick="closeImagePreview()" class="close-btn">&times;</button>
+            </div>
+            <div class="modal-body">
+                <img id="preview-image" src="" alt="Preview">
+                <textarea id="image-caption" placeholder="Başlık ekle..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeImagePreview()" class="cancel-btn">İptal</button>
+                <button onclick="sendImageMessage()" class="send-image-btn">Gönder</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="blocked-warning" class="blocked-warning" style="display: none;">
         🚫 Bu kullanıcı engellenmiştir. Mesaj gönderemezsiniz.
     </div>
 </div>
 
 <style>
-.emoji-btn {
-    background: none;
-    border: 1px solid #ddd;
-    border-radius: 6px;
-    padding: 5px 8px;
-    cursor: pointer;
-    font-size: 16px;
-    transition: all 0.2s;
-}
-
-.emoji-btn:hover {
-    background: #f0f0f0;
-    transform: scale(1.1);
-}
-
-.message-item {
-    margin-bottom: 15px;
+.chat-container {
+    max-width: 100%;
+    height: 100vh;
     display: flex;
-    animation: slideIn 0.3s ease-out;
+    flex-direction: column;
+    background: #fafafa;
+    margin: -70px -20px 0 -20px;
+}
+
+.chat-header {
+    background: white;
+    border-bottom: 1px solid #e1e8ed;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 54px;
+    z-index: 100;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.back-btn {
+    color: #262626;
+    text-decoration: none;
+    padding: 8px;
+    border-radius: 50%;
+    transition: background-color 0.2s;
+}
+
+.back-btn:hover {
+    background: #f5f5f5;
+}
+
+.avatar-container {
     position: relative;
 }
 
-@keyframes slideIn {
-    from { 
-        opacity: 0; 
-        transform: translateY(20px) scale(0.9); 
-    }
-    to { 
-        opacity: 1; 
-        transform: translateY(0) scale(1); 
-    }
-}
-
-.message-actions {
-    opacity: 0;
-    transition: opacity 0.2s;
-    margin-left: 10px;
-}
-
-.message-item:hover .message-actions {
-    opacity: 1;
-}
-
-.delete-btn {
-    background: #e74c3c;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    padding: 2px 6px;
-    font-size: 10px;
-    cursor: pointer;
-}
-
-.search-result {
-    padding: 8px;
-    border-bottom: 1px solid #dee2e6;
-    cursor: pointer;
-    transition: background 0.2s;
-}
-
-.search-result:hover {
-    background: #e9ecef;
-}
-
-.typing-indicator {
-    display: none;
-    padding: 10px 15px;
-    margin: 10px 0;
-    background: rgba(102, 126, 234, 0.1);
-    border-radius: 20px;
-    border-bottom-left-radius: 6px;
-    max-width: 200px;
-    animation: fadeIn 0.3s ease-in;
-}
-
-.typing-dots {
-    display: inline-flex;
-    gap: 4px;
-    margin-right: 8px;
-}
-
-.typing-dots span {
-    width: 6px;
-    height: 6px;
-    background: #667eea;
+.avatar-placeholder {
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    animation: typing 1.4s infinite ease-in-out;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 16px;
 }
 
-.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
-.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes typing {
-    0%, 80%, 100% { 
-        transform: scale(0.8); 
-        opacity: 0.5; 
-    }
-    40% { 
-        transform: scale(1); 
-        opacity: 1; 
-    }
+.status-dot {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid white;
+    background: #c7c7cc;
 }
 
-.read-receipt {
-    font-size: 10px;
-    color: #4ecdc4;
-    margin-top: 2px;
+.status-dot.online { background: #34c759; }
+.status-dot.away { background: #ff9500; }
+.status-dot.offline { background: #c7c7cc; }
+
+.user-details h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+    color: #262626;
+}
+
+.status-text {
+    font-size: 14px;
+    color: #8e8e93;
+}
+
+.header-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.action-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #8e8e93;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    background: #f5f5f5;
+}
+
+.block-btn.blocked {
+    color: #ff3b30;
+}
+
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    background: #fafafa;
+    scroll-behavior: smooth;
+}
+
+.messages-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.message-item {
+    display: flex;
+    margin-bottom: 8px;
+    animation: messageSlide 0.3s ease-out;
+}
+
+.message-item.own {
+    justify-content: flex-end;
+}
+
+.message-item.other {
+    justify-content: flex-start;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 12px 16px;
+    border-radius: 18px;
+    position: relative;
+    word-wrap: break-word;
+}
+
+.message-item.own .message-bubble {
+    background: #007aff;
+    color: white;
+    border-bottom-right-radius: 4px;
+}
+
+.message-item.other .message-bubble {
+    background: #e9e9eb;
+    color: #000;
+    border-bottom-left-radius: 4px;
+}
+
+.message-image {
+    max-width: 200px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    cursor: pointer;
+}
+
+.message-text {
+    margin: 0;
+    line-height: 1.4;
+}
+
+.message-time {
+    font-size: 11px;
+    opacity: 0.7;
+    margin-top: 4px;
     text-align: right;
 }
 
@@ -186,27 +273,277 @@
     text-align: right;
 }
 
-.status-sent { color: #95a5a6; }
-.status-delivered { color: #3498db; }
-.status-read { color: #4ecdc4; }
+.status-sent { color: #8e8e93; }
+.status-delivered { color: #007aff; }
+.status-read { color: #007aff; }
 
-.btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+.typing-indicator {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    margin: 8px 0;
+    animation: fadeIn 0.3s ease-in;
 }
 
-#send-indicator {
-    animation: pulse 1s infinite;
+.typing-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: linear-gradient(45deg, #667eea, #764ba2);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 600;
 }
 
-@keyframes pulse {
-    0%, 100% { opacity: 0.7; }
-    50% { opacity: 1; }
+.typing-bubble {
+    background: #e9e9eb;
+    border-radius: 18px;
+    padding: 12px 16px;
+    border-bottom-left-radius: 4px;
+}
+
+.typing-dots {
+    display: flex;
+    gap: 4px;
+}
+
+.typing-dots span {
+    width: 6px;
+    height: 6px;
+    background: #8e8e93;
+    border-radius: 50%;
+    animation: typing 1.4s infinite ease-in-out;
+}
+
+.typing-dots span:nth-child(1) { animation-delay: -0.32s; }
+.typing-dots span:nth-child(2) { animation-delay: -0.16s; }
+
+.message-input-area {
+    background: white;
+    border-top: 1px solid #e1e8ed;
+    padding: 12px 16px;
+    position: sticky;
+    bottom: 0;
+}
+
+.input-container {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+.attachment-btn {
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 50%;
+    cursor: pointer;
+    color: #007aff;
+    transition: background-color 0.2s;
+}
+
+.attachment-btn:hover {
+    background: #f5f5f5;
+}
+
+.text-input-container {
+    flex: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+    background: #f2f2f7;
+    border-radius: 20px;
+    padding: 8px 12px;
+}
+
+#message-input {
+    flex: 1;
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 16px;
+    font-family: inherit;
+    resize: none;
+    max-height: 100px;
+    line-height: 1.4;
+}
+
+.send-btn {
+    background: #007aff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: white;
+    transition: all 0.2s;
+}
+
+.send-btn:hover {
+    background: #0056cc;
+    transform: scale(1.05);
+}
+
+.send-btn:disabled {
+    background: #c7c7cc;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.image-preview-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.8);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    max-width: 400px;
+    width: 90%;
+    max-height: 80vh;
+    overflow: hidden;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border-bottom: 1px solid #e1e8ed;
+}
+
+.modal-header h3 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #8e8e93;
+}
+
+.modal-body {
+    padding: 16px;
+}
+
+#preview-image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: cover;
+    border-radius: 8px;
+    margin-bottom: 12px;
+}
+
+#image-caption {
+    width: 100%;
+    border: 1px solid #e1e8ed;
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 60px;
+}
+
+.modal-footer {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-top: 1px solid #e1e8ed;
+}
+
+.cancel-btn, .send-image-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cancel-btn {
+    background: #f2f2f7;
+    color: #262626;
+}
+
+.cancel-btn:hover {
+    background: #e5e5ea;
+}
+
+.send-image-btn {
+    background: #007aff;
+    color: white;
+}
+
+.send-image-btn:hover {
+    background: #0056cc;
+}
+
+.blocked-warning {
+    text-align: center;
+    padding: 20px;
+    background: #fff2f2;
+    border: 1px solid #fecaca;
+    border-radius: 8px;
+    color: #dc2626;
+    margin: 16px;
+}
+
+@keyframes messageSlide {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@media (max-width: 768px) {
+    .chat-container {
+        margin: -70px -10px 0 -10px;
+    }
+    
+    .chat-header {
+        padding: 8px 12px;
+    }
+    
+    .messages-container {
+        padding: 12px;
+    }
+    
+    .message-input-area {
+        padding: 8px 12px;
+    }
+    
+    .modal-content {
+        width: 95%;
+    }
 }
 </style>
 
@@ -217,17 +554,29 @@ let lastMessageCount = 0;
 let typingTimer;
 let isTyping = false;
 let isUserBlocked = false;
+let selectedImageFile = null;
 
 function updateUserStatus() {
     fetch(`/get_user_status/${recipient}`)
         .then(response => response.json())
         .then(data => {
-            const statusEl = document.getElementById('user-status');
-            const statusText = data.status === 'online' ? '🟢 Çevrimiçi' : 
-                             data.status === 'away' ? '🟡 Uzakta' : '🔴 Çevrimdışı';
-            statusEl.textContent = statusText;
-            statusEl.style.background = data.status === 'online' ? '#d4edda' : 
-                                      data.status === 'away' ? '#fff3cd' : '#f8d7da';
+            const statusDot = document.getElementById('user-status-dot');
+            const statusText = document.getElementById('user-status-text');
+            
+            statusDot.className = 'status-dot';
+            if (data.status === 'online') {
+                statusDot.classList.add('online');
+                statusText.textContent = 'Çevrimiçi';
+            } else if (data.status === 'away') {
+                statusDot.classList.add('away');
+                statusText.textContent = 'Uzakta';
+            } else {
+                statusDot.classList.add('offline');
+                statusText.textContent = 'Çevrimdışı';
+            }
+        })
+        .catch(() => {
+            document.getElementById('user-status-text').textContent = 'Çevrimdışı';
         });
 }
 
@@ -241,20 +590,22 @@ function checkBlockStatus() {
             const blockedWarning = document.getElementById('blocked-warning');
             
             if (isUserBlocked) {
-                blockBtn.innerHTML = '✅ Engeli Kaldır';
-                blockBtn.style.background = '#27ae60';
+                blockBtn.classList.add('blocked');
+                blockBtn.title = 'Engeli Kaldır';
                 messageArea.style.display = 'none';
                 blockedWarning.style.display = 'block';
             } else {
-                blockBtn.innerHTML = '🚫 Engelle';
-                blockBtn.style.background = '#e74c3c';
-                messageArea.style.display = 'flex';
+                blockBtn.classList.remove('blocked');
+                blockBtn.title = 'Engelle';
+                messageArea.style.display = 'block';
                 blockedWarning.style.display = 'none';
             }
         })
         .catch(() => {
             // API endpoint yoksa varsayılan durumu koru
             isUserBlocked = false;
+            document.getElementById('message-input-area').style.display = 'block';
+            document.getElementById('blocked-warning').style.display = 'none';
         });
 }
 
@@ -285,17 +636,6 @@ function toggleBlockUser() {
     });
 }
 
-function insertEmoji(emoji) {
-    const messageInput = document.getElementById('message-input');
-    const start = messageInput.selectionStart;
-    const end = messageInput.selectionEnd;
-    const text = messageInput.value;
-
-    messageInput.value = text.substring(0, start) + emoji + text.substring(end);
-    messageInput.selectionStart = messageInput.selectionEnd = start + emoji.length;
-    messageInput.focus();
-}
-
 function handleTyping() {
     if (!isTyping) {
         isTyping = true;
@@ -306,7 +646,7 @@ function handleTyping() {
                 recipient: recipient,
                 typing: true 
             })
-        });
+        }).catch(() => {}); // Silent fail
     }
     
     clearTimeout(typingTimer);
@@ -319,7 +659,7 @@ function handleTyping() {
                 recipient: recipient,
                 typing: false 
             })
-        });
+        }).catch(() => {}); // Silent fail
     }, 2000);
 }
 
@@ -328,17 +668,13 @@ function checkTypingStatus() {
         .then(response => response.json())
         .then(data => {
             const typingIndicator = document.getElementById('typing-indicator');
-            const typingText = document.getElementById('typing-text');
-            
             if (data.typing) {
-                typingText.textContent = `${recipient} yazıyor...`;
-                typingIndicator.style.display = 'block';
+                typingIndicator.style.display = 'flex';
             } else {
                 typingIndicator.style.display = 'none';
             }
         })
         .catch(() => {
-            // API endpoint yoksa gizle
             document.getElementById('typing-indicator').style.display = 'none';
         });
 }
@@ -366,23 +702,7 @@ function loadMessages() {
                 const messageDiv = document.createElement('div');
                 messageDiv.className = 'message-item';
                 const isOwn = msg.sender === currentUser;
-
-                messageDiv.style.cssText = `
-                    justify-content: ${isOwn ? 'flex-end' : 'flex-start'};
-                `;
-
-                const messageContent = document.createElement('div');
-                messageContent.style.cssText = `
-                    max-width: 70%;
-                    padding: 15px 20px;
-                    border-radius: 20px;
-                    word-wrap: break-word;
-                    position: relative;
-                    ${isOwn ? 
-                        'background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-bottom-right-radius: 6px; box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);' : 
-                        'background: white; color: #333; border: 1px solid #ddd; border-bottom-left-radius: 6px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);'
-                    }
-                `;
+                messageDiv.classList.add(isOwn ? 'own' : 'other');
 
                 const time = new Date(msg.timestamp).toLocaleTimeString('tr-TR', {
                     hour: '2-digit',
@@ -397,25 +717,29 @@ function loadMessages() {
                     statusHtml = `<div class="message-status ${statusClass}">${statusIcon}</div>`;
                 }
 
-                messageContent.innerHTML = `
-                    <div style="font-weight: 600; font-size: 12px; margin-bottom: 5px; opacity: 0.8;">
-                        ${isOwn ? 'Sen' : msg.sender}
-                    </div>
-                    <div style="margin-bottom: 8px; line-height: 1.4; white-space: pre-wrap;">${msg.message}</div>
-                    <div style="font-size: 11px; opacity: 0.7; text-align: right;">${time}</div>
-                    ${statusHtml}
-                `;
-
-                messageDiv.appendChild(messageContent);
-
-                if (isOwn) {
-                    const actionsDiv = document.createElement('div');
-                    actionsDiv.className = 'message-actions';
-                    actionsDiv.innerHTML = `
-                        <button class="delete-btn" onclick="deleteMessage(${msg.id})">🗑️</button>
-                    `;
-                    messageDiv.appendChild(actionsDiv);
+                let messageContent = '';
+                if (msg.is_file && msg.file_path) {
+                    // Check if it's an image file
+                    const isImage = /\.(jpg|jpeg|png|gif|webp)$/i.test(msg.file_name || '');
+                    if (isImage) {
+                        messageContent = `
+                            <img src="/${msg.file_path}" alt="${msg.file_name}" class="message-image" onclick="openImageModal('/${msg.file_path}')">
+                            ${msg.message !== `📎 Dosya paylaştı: ${msg.file_name}` ? `<p class="message-text">${msg.message}</p>` : ''}
+                        `;
+                    } else {
+                        messageContent = `<p class="message-text">${msg.message}</p>`;
+                    }
+                } else {
+                    messageContent = `<p class="message-text">${msg.message}</p>`;
                 }
+
+                messageDiv.innerHTML = `
+                    <div class="message-bubble">
+                        ${messageContent}
+                        <div class="message-time">${time}</div>
+                        ${statusHtml}
+                    </div>
+                `;
 
                 messagesDiv.appendChild(messageDiv);
             });
@@ -445,11 +769,11 @@ function markMessagesAsRead() {
 function sendMessage() {
     const messageInput = document.getElementById('message-input');
     const message = messageInput.value.trim();
-    const sendIndicator = document.getElementById('send-indicator');
+    const sendBtn = document.getElementById('send-btn');
 
     if (!message || isUserBlocked) return;
 
-    sendIndicator.style.display = 'block';
+    sendBtn.disabled = true;
 
     fetch('/send_message', {
         method: 'POST',
@@ -461,86 +785,112 @@ function sendMessage() {
     })
     .then(response => response.json())
     .then(data => {
-        sendIndicator.style.display = 'none';
+        sendBtn.disabled = false;
         if (data.success) {
             messageInput.value = '';
-            messageInput.style.height = '50px';
+            autoResize(messageInput);
             loadMessages();
         } else {
             alert('Mesaj gönderilemedi: ' + data.error);
         }
     })
     .catch(error => {
-        sendIndicator.style.display = 'none';
+        sendBtn.disabled = false;
         console.error('Error sending message:', error);
         alert('Mesaj gönderilirken hata oluştu');
     });
 }
 
-function deleteMessage(messageId) {
-    if (!confirm('Bu mesajı silmek istediğinizden emin misiniz?')) return;
+function handleImageSelect(event) {
+    const file = event.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+        selectedImageFile = file;
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('preview-image').src = e.target.result;
+            document.getElementById('image-preview-modal').style.display = 'flex';
+        };
+        reader.readAsDataURL(file);
+    }
+}
 
-    fetch('/delete_message', {
+function closeImagePreview() {
+    document.getElementById('image-preview-modal').style.display = 'none';
+    document.getElementById('image-caption').value = '';
+    selectedImageFile = null;
+}
+
+function sendImageMessage() {
+    if (!selectedImageFile) return;
+
+    const formData = new FormData();
+    formData.append('file', selectedImageFile);
+    formData.append('recipient', recipient);
+
+    const caption = document.getElementById('image-caption').value.trim();
+    if (caption) {
+        formData.append('caption', caption);
+    }
+
+    fetch('/upload_file', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            message_id: messageId
-        })
+        body: formData
     })
     .then(response => response.json())
     .then(data => {
         if (data.success) {
-            loadMessages();
+            // If there's a caption, send it as a separate message
+            if (caption) {
+                return fetch('/send_message', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        recipient: recipient,
+                        message: caption 
+                    })
+                });
+            }
         } else {
-            alert('Mesaj silinemedi: ' + data.error);
+            throw new Error(data.error || 'Upload failed');
         }
+    })
+    .then(() => {
+        closeImagePreview();
+        loadMessages();
+    })
+    .catch(error => {
+        console.error('Error uploading image:', error);
+        alert('Görsel gönderilirken hata oluştu');
     });
 }
 
-function searchMessages() {
-    const query = document.getElementById('search-input').value.trim();
-    const resultsDiv = document.getElementById('search-results');
+function openImageModal(imageSrc) {
+    // Create a simple image modal for viewing
+    const modal = document.createElement('div');
+    modal.style.cssText = `
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.9); z-index: 2000;
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+    `;
+    
+    const img = document.createElement('img');
+    img.src = imageSrc;
+    img.style.cssText = 'max-width: 90%; max-height: 90%; object-fit: contain;';
+    
+    modal.appendChild(img);
+    modal.onclick = () => modal.remove();
+    document.body.appendChild(modal);
+}
 
-    if (query.length < 2) {
-        resultsDiv.style.display = 'none';
-        return;
-    }
-
-    fetch(`/search_messages?q=${encodeURIComponent(query)}&recipient=${recipient}`)
-        .then(response => response.json())
-        .then(results => {
-            if (results.length > 0) {
-                resultsDiv.style.display = 'block';
-                resultsDiv.innerHTML = '<strong>🔍 Arama Sonuçları:</strong><br>' +
-                    results.map(msg => `
-                        <div class="search-result">
-                            <strong>${msg.sender}:</strong> ${msg.message.substring(0, 50)}${msg.message.length > 50 ? '...' : ''}
-                            <small style="color: #666; display: block;">${new Date(msg.timestamp).toLocaleString('tr-TR')}</small>
-                        </div>
-                    `).join('');
-            } else {
-                resultsDiv.style.display = 'block';
-                resultsDiv.innerHTML = '<em>Sonuç bulunamadı</em>';
-            }
-        });
+function autoResize(textarea) {
+    textarea.style.height = 'auto';
+    textarea.style.height = Math.min(textarea.scrollHeight, 100) + 'px';
 }
 
 // Auto-resize textarea
 document.getElementById('message-input').addEventListener('input', function() {
-    this.style.height = '50px';
-    this.style.height = Math.min(this.scrollHeight, 150) + 'px';
-});
-
-// Search functionality
-document.getElementById('search-input').addEventListener('input', searchMessages);
-
-// Close search results when clicking outside
-document.addEventListener('click', function(e) {
-    if (!e.target.closest('#search-input') && !e.target.closest('#search-results')) {
-        document.getElementById('search-results').style.display = 'none';
-    }
+    autoResize(this);
 });
 
 // Load messages on page load
