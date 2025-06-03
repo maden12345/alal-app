@@ -200,11 +200,20 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
+        confirm_password = request.form['confirm_password']
 
         users = load_users()
 
         if username in users:
             flash('Kullanıcı adı zaten mevcut!')
+            return render_template('register.html')
+
+        if password != confirm_password:
+            flash('Şifreler eşleşmiyor!')
+            return render_template('register.html')
+
+        if len(password) < 6:
+            flash('Şifre en az 6 karakter olmalıdır!')
             return render_template('register.html')
 
         users[username] = {
