@@ -24,9 +24,9 @@
         <div id="messages"></div>
     </div>
 
-    <div id="message-input-container" style="display: flex; gap: 15px; align-items: flex-end; position: relative;">
+    <div style="display: flex; gap: 10px; align-items: flex-end;">
         <div style="flex: 1;">
-            <div style="display: flex; gap: 8px; margin-bottom: 15px; flex-wrap: wrap; justify-content: center;">
+            <div style="display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap;">
                 <button onclick="insertEmoji('😀')" class="emoji-btn">😀</button>
                 <button onclick="insertEmoji('😍')" class="emoji-btn">😍</button>
                 <button onclick="insertEmoji('😂')" class="emoji-btn">😂</button>
@@ -38,132 +38,30 @@
                 <button onclick="insertEmoji('🔥')" class="emoji-btn">🔥</button>
                 <button onclick="insertEmoji('✨')" class="emoji-btn">✨</button>
             </div>
-            <div class="input-wrapper">
-                <textarea id="message-input" placeholder="Mesajınızı yazın..." 
-                         style="width: 100%; min-height: 60px; max-height: 150px; padding: 20px; border: none; border-radius: 25px; font-size: 15px; resize: none; font-family: inherit; background: #f8f9fa; box-shadow: 0 4px 15px rgba(0,0,0,0.1); transition: all 0.3s ease; outline: none;"
-                         onkeydown="handleKeyDown(event)" oninput="adjustTextareaHeight(this)"></textarea>
-                <div id="typing-indicator" class="typing-indicator">
-                    <span></span><span></span><span></span>
-                </div>
-            </div>
+            <textarea id="message-input" placeholder="Mesajınızı yazın... (Enter ile gönder, Shift+Enter ile yeni satır)" 
+                     style="width: 100%; min-height: 50px; max-height: 150px; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 14px; resize: vertical; font-family: inherit;"
+                     onkeydown="handleKeyDown(event)"></textarea>
         </div>
-        <button id="send-btn" onclick="sendMessage()" class="send-btn" disabled>
-            <span class="send-icon">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-                    <path d="M2 21L23 12L2 3V10L17 12L2 14V21Z" fill="currentColor"/>
-                </svg>
-            </span>
-            <span class="loading-spinner" style="display: none;">
-                <svg width="24" height="24" viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="3" fill="currentColor">
-                        <animate attributeName="r" values="3;6;3" dur="1s" repeatCount="indefinite"/>
-                        <animate attributeName="opacity" values="1;0.5;1" dur="1s" repeatCount="indefinite"/>
-                    </circle>
-                </svg>
-            </span>
+        <button onclick="sendMessage()" class="btn" style="padding: 15px 25px; height: fit-content;">
+            📤 Gönder
         </button>
     </div>
 </div>
 
 <style>
 .emoji-btn {
-    background: linear-gradient(135deg, #fff, #f8f9fa);
-    border: 2px solid #e9ecef;
-    border-radius: 12px;
-    padding: 8px 12px;
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 5px 8px;
     cursor: pointer;
-    font-size: 18px;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    font-size: 16px;
+    transition: all 0.2s;
 }
 
 .emoji-btn:hover {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    transform: translateY(-2px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-}
-
-.input-wrapper {
-    position: relative;
-}
-
-.input-wrapper textarea:focus {
-    background: white;
-    box-shadow: 0 8px 30px rgba(102, 126, 234, 0.2);
-    transform: translateY(-2px);
-}
-
-.send-btn {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    border: none;
-    border-radius: 50%;
-    width: 60px;
-    height: 60px;
-    cursor: pointer;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-    color: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.send-btn:hover:not(:disabled) {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
-}
-
-.send-btn:disabled {
-    background: #dee2e6;
-    cursor: not-allowed;
-    box-shadow: none;
-}
-
-.send-btn:active:not(:disabled) {
-    transform: translateY(-1px) scale(0.98);
-}
-
-.typing-indicator {
-    display: none;
-    position: absolute;
-    bottom: 15px;
-    left: 25px;
-    color: #6c757d;
-    font-size: 14px;
-}
-
-.typing-indicator span {
-    display: inline-block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-    background: #667eea;
-    margin: 0 2px;
-    animation: typing 1.4s infinite ease-in-out;
-}
-
-.typing-indicator span:nth-child(1) { animation-delay: -0.32s; }
-.typing-indicator span:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes typing {
-    0%, 80%, 100% { 
-        transform: scale(0.8);
-        opacity: 0.5;
-    }
-    40% { 
-        transform: scale(1);
-        opacity: 1;
-    }
-}
-
-.message-sending {
-    opacity: 0.7;
-    transform: translateX(10px);
-    transition: all 0.3s ease;
-}
-
-.message-sent {
-    animation: messageSent 0.5s ease;
+    background: #f0f0f0;
+    transform: scale(1.1);
 }
 
 .message-item {
@@ -175,24 +73,6 @@
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes messageSuccess {
-    0% { transform: scale(1); }
-    50% { transform: scale(1.02); background: rgba(40, 167, 69, 0.1); }
-    100% { transform: scale(1); }
-}
-
-@keyframes messageError {
-    0% { transform: translateX(0); }
-    25% { transform: translateX(-5px); background: rgba(220, 53, 69, 0.1); }
-    75% { transform: translateX(5px); }
-    100% { transform: translateX(0); }
-}
-
-@keyframes messageSent {
-    0% { opacity: 0.7; transform: translateX(10px); }
-    100% { opacity: 1; transform: translateX(0); }
 }
 
 .message-actions {
@@ -342,17 +222,9 @@ function loadMessages() {
 
 function sendMessage() {
     const messageInput = document.getElementById('message-input');
-    const sendBtn = document.getElementById('send-btn');
     const message = messageInput.value.trim();
 
     if (!message) return;
-
-    // Gönderme animasyonu başlat
-    showSendingAnimation();
-    sendBtn.disabled = true;
-    
-    // Geçici mesaj ekle
-    addTemporaryMessage(message);
 
     fetch('/send_message', {
         method: 'POST',
@@ -366,118 +238,16 @@ function sendMessage() {
     .then(data => {
         if (data.success) {
             messageInput.value = '';
-            adjustTextareaHeight(messageInput);
-            removeTemporaryMessage();
+            messageInput.style.height = '50px';
             loadMessages();
-            showSuccessAnimation();
         } else {
-            removeTemporaryMessage();
-            showErrorAnimation();
             alert('Mesaj gönderilemedi: ' + data.error);
         }
     })
     .catch(error => {
         console.error('Error sending message:', error);
-        removeTemporaryMessage();
-        showErrorAnimation();
         alert('Mesaj gönderilirken hata oluştu');
-    })
-    .finally(() => {
-        hideSendingAnimation();
-        sendBtn.disabled = false;
     });
-}
-
-function showSendingAnimation() {
-    const sendBtn = document.getElementById('send-btn');
-    const sendIcon = sendBtn.querySelector('.send-icon');
-    const loadingSpinner = sendBtn.querySelector('.loading-spinner');
-    
-    sendIcon.style.display = 'none';
-    loadingSpinner.style.display = 'flex';
-    sendBtn.style.transform = 'scale(0.95)';
-}
-
-function hideSendingAnimation() {
-    const sendBtn = document.getElementById('send-btn');
-    const sendIcon = sendBtn.querySelector('.send-icon');
-    const loadingSpinner = sendBtn.querySelector('.loading-spinner');
-    
-    sendIcon.style.display = 'flex';
-    loadingSpinner.style.display = 'none';
-    sendBtn.style.transform = 'scale(1)';
-}
-
-function showSuccessAnimation() {
-    const inputContainer = document.getElementById('message-input-container');
-    inputContainer.style.animation = 'messageSuccess 0.5s ease';
-    setTimeout(() => {
-        inputContainer.style.animation = '';
-    }, 500);
-}
-
-function showErrorAnimation() {
-    const inputContainer = document.getElementById('message-input-container');
-    inputContainer.style.animation = 'messageError 0.5s ease';
-    setTimeout(() => {
-        inputContainer.style.animation = '';
-    }, 500);
-}
-
-function addTemporaryMessage(message) {
-    const messagesDiv = document.getElementById('messages');
-    const container = document.getElementById('messages-container');
-    
-    const tempMessageDiv = document.createElement('div');
-    tempMessageDiv.id = 'temp-message';
-    tempMessageDiv.className = 'message-item message-sending';
-    tempMessageDiv.style.justifyContent = 'flex-end';
-
-    const messageContent = document.createElement('div');
-    messageContent.style.cssText = `
-        max-width: 70%;
-        padding: 15px 20px;
-        border-radius: 20px;
-        word-wrap: break-word;
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        color: white;
-        border-bottom-right-radius: 6px;
-        opacity: 0.7;
-    `;
-
-    messageContent.innerHTML = `
-        <div style="font-weight: 600; font-size: 12px; margin-bottom: 5px; opacity: 0.8;">
-            Sen
-        </div>
-        <div style="margin-bottom: 8px; line-height: 1.4; white-space: pre-wrap;">${message}</div>
-        <div style="font-size: 11px; opacity: 0.7; text-align: right;">Gönderiliyor...</div>
-    `;
-
-    tempMessageDiv.appendChild(messageContent);
-    messagesDiv.appendChild(tempMessageDiv);
-    container.scrollTop = container.scrollHeight;
-}
-
-function removeTemporaryMessage() {
-    const tempMessage = document.getElementById('temp-message');
-    if (tempMessage) {
-        tempMessage.remove();
-    }
-}
-
-function adjustTextareaHeight(textarea) {
-    const sendBtn = document.getElementById('send-btn');
-    textarea.style.height = '60px';
-    textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
-    
-    // Send butonunu etkinleştir/devre dışı bırak
-    if (textarea.value.trim()) {
-        sendBtn.disabled = false;
-        sendBtn.style.background = 'linear-gradient(135deg, #667eea, #764ba2)';
-    } else {
-        sendBtn.disabled = true;
-        sendBtn.style.background = '#dee2e6';
-    }
 }
 
 function deleteMessage(messageId) {
@@ -530,9 +300,10 @@ function searchMessages() {
         });
 }
 
-// Auto-resize textarea ve send buton kontrolü
+// Auto-resize textarea
 document.getElementById('message-input').addEventListener('input', function() {
-    adjustTextareaHeight(this);
+    this.style.height = '50px';
+    this.style.height = Math.min(this.scrollHeight, 150) + 'px';
 });
 
 // Search functionality
