@@ -161,7 +161,8 @@
     "recipient": "irem.cayr1",
     "message": "kdnfglkdmgklmlg",
     "timestamp": "2025-06-03T18:27:35.775424",
-    "reactions": {}
+    "reactions": {},
+    "read": true
   },
   {
     "id": 18,
@@ -169,7 +170,8 @@
     "recipient": "irem.cayr1",
     "message": "kdnfglkdmgklmlgdfg",
     "timestamp": "2025-06-03T18:27:35.912669",
-    "reactions": {}
+    "reactions": {},
+    "read": true
   },
   {
     "id": 19,
@@ -177,6 +179,7 @@
     "recipient": "irem.cayr1",
     "message": "fdgd",
     "timestamp": "2025-06-03T18:27:36.799957",
-    "reactions": {}
+    "reactions": {},
+    "read": true
   }
 ]
