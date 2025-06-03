@@ -1,0 +1,281 @@
+html
+{% extends "base.html" %}
+
+{% block title %}Ana Sayfa - ChatNell{% endblock %}
+
+{% block content %}
+<!-- Bildirim Sistemi -->
+
+
+<!-- Bildirim Paneli -->
+
+
+
+
+<div class="card">
+    <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a1a1a;">🔍 Arkadaş Edin</h3>
+    <div style="margin-bottom: 20px;">
+        <input type="text" id="user-search" placeholder="🔍 Kullanıcı ara..." style="width: 100%; padding: 12px; border: 1px solid #e5e5e5; border-radius: 8px; font-size: 14px; background: #fafafa;" oninput="searchUsers()">
+    </div>
+    <div id="search-results" style="min-height: 40px;">
+        <div style="text-align: center; color: #666; font-size: 14px;">Arkadaş edinmek için kullanıcı arayın</div>
+    </div>
+
+    <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e5e5;">
+        <h4 style="font-size: 16px; font-weight: 600; margin-bottom: 15px; color: #1a1a1a;">👥 Ekle</h4>
+        <div id="recent-users" style="min-height: 40px;">
+            <div style="text-align: center; color: #666; font-size: 14px;">Yükleniyor...</div>
+        </div>
+
+        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a1a1a;">🟢 Çevrimiçi Arkadaşlar</h3>
+        <div id="online-friends" style="min-height: 40px;">
+            <div style="text-align: center; color: #666; font-size: 14px;">Yükleniyor...</div>
+        </div>
+
+        <!-- Çevrimdışı Arkadaşlar -->
+        <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a1a1a;">⚫ Çevrimdışı Arkadaşlar</h3>
+        <div id="offline-friends" style="min-height: 40px;">
+            <div style="text-align: center; color: #666; font-size: 14px;">Yükleniyor...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Nells Bölümü -->
+<div class="card">
+    <h3 style="font-size: 20px; font-weight: 600; margin-bottom: 20px; color: #1a1a1a;">📱 Nells</h3>
+    <div style="text-align: center; margin-bottom: 16px;">
+        <a href="{{ url_for('nells') }}" style="display: inline-block; background: linear-gradient(135deg, #1a1a1a, #333); color: white; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-size: 14px; font-weight: 500; transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+            📱 Nells'leri Keşfet
+        </a>
+    </div>
+    <p style="color: #666; font-size: 14px; text-align: center;">Kullanıcıların paylaştığı gönderileri keşfedin</p>
+</div>
+
+<script>
+
+
+function loadFriends() {
+    fetch('/get_friendship_data')
+        .then(response => response.json())
+        .then(data => {
+            const onlineFriendsDiv = document.getElementById('online-friends');
+            const offlineFriendsDiv = document.getElementById('offline-friends');
+
+            if (!data.friends || data.friends.length === 0) {
+                onlineFriendsDiv.innerHTML = '<div style="text-align: center; color: #666; font-size: 14px;">Arkadaş listeniz boş</div>';
+                offlineFriendsDiv.innerHTML = '<div style="text-align: center; color: #666; font-size: 14px;">Arkadaş listeniz boş</div>';
+                return;
+            }
+
+            Promise.all(data.friends.map(username => 
+                fetch(`/get_user_status/${username}`)
+                    .then(response => response.json())
+                    .then(status => ({ username, status: status.status }))
+            ))
+            .then(friendsWithStatus => {
+                const onlineFriends = friendsWithStatus.filter(friend => friend.status === 'online');
+                const offlineFriends = friendsWithStatus.filter(friend => friend.status !== 'online');
+
+                if (onlineFriends.length === 0) {
+                    onlineFriendsDiv.innerHTML = '<div style="text-align: center; color: #666; font-size: 14px;">Çevrimiçi arkadaş yok</div>';
+                } else {
+                    onlineFriendsDiv.innerHTML = onlineFriends.map(friend => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fafafa; border-radius: 8px; margin-bottom: 8px; cursor: pointer;" onclick="window.location.href='/profile/${friend.username}'">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div id="profile-${friend.username}" style="width: 32px; height: 32px; border-radius: 50%; background: #1a1a1a; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">
+                                    ${friend.username[0].toUpperCase()}
+                                </div>
+                                <div>
+                                    <span style="font-weight: 500; color: #1a1a1a; font-size: 14px;">${friend.username}</span>
+                                    <div style="font-size: 12px; color: #22c55e;">🟢 Çevrimiçi</div>
+                                </div>
+                            </div>
+                            <a href="/chat/${friend.username}" style="background: #1a1a1a; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500;" onclick="event.stopPropagation();">Mesaj</a>
+                        </div>
+                    `).join('');
+                }
+
+                if (offlineFriends.length === 0) {
+                    offlineFriendsDiv.innerHTML = '<div style="text-align: center; color: #666; font-size: 14px;">Çevrimdışı arkadaş yok</div>';
+                } else {
+                    offlineFriendsDiv.innerHTML = offlineFriends.map(friend => `
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fafafa; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/profile/${friend.username}'" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='#fafafa'">
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div id="profile-offline-${friend.username}" style="width: 32px; height: 32px; border-radius: 50%; background: #999; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">
+                                    ${friend.username[0].toUpperCase()}
+                                </div>
+                                <div>
+                                    <span style="font-weight: 500; color: #1a1a1a; font-size: 14px;">${friend.username}</span>
+                                    <div style="font-size: 12px; color: #999;">⚫ Çevrimdışı</div>
+                                </div>
+                            </div>
+                            <a href="/chat/${friend.username}" style="background: #666; color: white; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500;" onclick="event.stopPropagation();">Mesaj</a>
+                        </div>
+                    `).join('');
+                }
+            });
+        });
+}
+
+function searchUsers() {
+    const query = document.getElementById('user-search').value.trim();
+    const resultsDiv = document.getElementById('search-results');
+
+    if (query.length < 2) {
+        resultsDiv.innerHTML = '<div style="text-align: center; color: #666; font-size: 14px;">En az 2 karakter girin</div>';
+        return;
+    }
+
+    fetch(`/search_users?q=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(users => {
+            if (users.length === 0) {
+                resultsDiv.innerHTML = '<div style="text-align: center; color: #666; font-size: 14px;">Kullanıcı bulunamadı</div>';
+                return;
+            }
+
+            document.getElementById('search-results').innerHTML = users.map(user => `
+                <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fafafa; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/profile/${user.username}'" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='#fafafa'">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <div id="search-profile-${user.username}" style="width: 32px; height: 32px; border-radius: 50%; background: #1a1a1a; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">
+                            ${user.username[0].toUpperCase()}
+                        </div>
+                        <div>
+                            <span style="font-weight: 500; color: #1a1a1a; font-size: 14px;">${user.username}</span>
+                            <div style="font-size: 12px; color: #666;">${user.followers_count} takipçi</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px;">
+                        <a href="/profile/${user.username}" style="background: #f5f5f5; color: #1a1a1a; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500;" onclick="event.stopPropagation();">Profil</a>
+                        <button onclick="event.stopPropagation(); sendFriendRequestFromSearch('${user.username}')" style="background: #1a1a1a; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;">İstek Gönder</button>
+                    </div>
+                </div>
+            `).join('');
+        })
+        .catch(error => {
+            resultsDiv.innerHTML = '<div style="text-align: center; color: #ff4757; font-size: 14px;">Arama sırasında hata oluştu</div>';
+        });
+}
+
+function sendFriendRequestFromSearch(username) {
+    fetch('/send_friend_request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || data.error);
+        if (data.success) {
+            searchUsers();
+        }
+    });
+}
+
+function loadRecentUsers() {
+    // Arkadaş listesini ve tüm kullanıcıları al
+    Promise.all([
+        fetch('/get_friendship_data').then(response => response.json()),
+        fetch('/get_all_users').then(response => response.json())
+    ])
+    .then(([friendshipData, allUsers]) => {
+        const recentUsersDiv = document.getElementById('recent-users');
+        const friends = friendshipData.friends || [];
+
+        // Arkadaş olmayan kullanıcıları filtrele
+        const nonFriendUsers = allUsers.filter(user => !friends.includes(user.username));
+
+        if (nonFriendUsers.length === 0) {
+            recentUsersDiv.innerHTML = '<div style="text-align: center; color: #666; font-size: 14px;">Eklenecek kullanıcı yok</div>';
+            return;
+        }
+
+        recentUsersDiv.innerHTML = nonFriendUsers.map(user => `
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #fafafa; border-radius: 8px; margin-bottom: 8px; cursor: pointer; transition: background 0.2s;" onclick="window.location.href='/profile/${user.username}'" onmouseover="this.style.background='#f0f0f0'" onmouseout="this.style.background='#fafafa'">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div id="recent-profile-${user.username}" style="width: 32px; height: 32px; border-radius: 50%; background: #1a1a1a; color: white; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 600;">
+                        ${user.username[0].toUpperCase()}
+                    </div>
+                    <div>
+                        <span style="font-weight: 500; color: #1a1a1a; font-size: 14px;">${user.username}</span>
+                        <div style="font-size: 12px; color: #666;">${user.created_at}</div>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 8px;">
+                    <a href="/profile/${user.username}" style="background: #f5f5f5; color: #1a1a1a; padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 12px; font-weight: 500;" onclick="event.stopPropagation();">Profil</a>
+                    <button onclick="sendFriendRequestFromUsers('${user.username}')" style="background: #1a1a1a; color: white; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 12px; font-weight: 500;"  onclick="event.stopPropagation();">İstek Gönder</button>
+                </div>
+            </div>
+        `).join('');
+    })
+    .catch(error => {
+        const recentUsersDiv = document.getElementById('recent-users');
+        recentUsersDiv.innerHTML = '<div style="text-align: center; color: #ff4757; font-size: 14px;">Kullanıcılar yüklenirken hata oluştu</div>';
+    });
+}
+
+function sendFriendRequestFromUsers(username) {
+    fetch('/send_friend_request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || data.error);
+        if (data.success) {
+            loadRecentUsers(); // Listeyi yenile
+            loadFriends(); // Arkadaş listesini de yenile
+        }
+    });
+}
+
+
+
+// Panel dışına tıklandığında kapat
+document.addEventListener('click', function(e) {
+    const panel = document.getElementById('notification-panel');
+    const bell = document.getElementById('notification-bell');
+
+    if (panel && bell && !panel.contains(e.target) && !bell.contains(e.target)) {
+        panel.style.display = 'none';
+    }
+});
+
+function loadProfilePhotos() {
+    // Tüm kullanıcıların profil fotoğraflarını yükle (arkadaş olmasalar bile)
+    document.querySelectorAll('[id^="profile-"], [id^="search-profile-"], [id^="recent-profile-"]').forEach(element => {
+        const username = element.id.replace('profile-', '').replace('search-profile-', '').replace('recent-profile-', '').replace('offline-', '');
+        
+        fetch(`/get_user_info/${username}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.profile_photo) {
+                    element.innerHTML = `<img src="/static/${data.profile_photo}" style="width: 100%; height: 100%; border-radius: 50%; object-fit: cover;">`;
+                } else {
+                    // Profil fotoğrafı yoksa varsayılan avatar kalsın
+                    element.innerHTML = username[0].toUpperCase();
+                }
+            })
+            .catch(error => {
+                // Hata durumunda varsayılan avatar kalsın
+                console.log('Profile photo load error for', username);
+            });
+    });
+}
+
+// Sayfa yüklendiğinde verileri yükle
+document.addEventListener('DOMContentLoaded', function() {
+    loadFriends();
+    loadRecentUsers();
+    
+    // Profil fotoğraflarını yüklemek için kısa bir gecikme ekle
+    setTimeout(() => {
+        loadProfilePhotos();
+    }, 1000);
+});
+</script>
+{% endblock %}
+```
+
+The provided change aims to add a profile link for online friends in the dashboard.

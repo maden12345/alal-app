@@ -1,0 +1,26 @@
+[
+  {
+    "id": 0,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "o",
+    "timestamp": "2025-06-03T17:44:21.365859",
+    "reactions": {}
+  },
+  {
+    "id": 1,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "ok",
+    "timestamp": "2025-06-03T17:44:39.153557",
+    "reactions": {}
+  },
+  {
+    "id": 2,
+    "sender": "irem.cayr1",
+    "recipient": "ayca.bül",
+    "message": "okk",
+    "timestamp": "2025-06-03T17:44:40.804375",
+    "reactions": {}
+  }
+]

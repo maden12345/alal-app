@@ -1,0 +1,536 @@
+{% extends "base.html" %}
+
+{% block title %}{{ profile_user }} - Profil{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
+        <h2 style="background: linear-gradient(135deg, #2c3e50, #3498db); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0; font-weight: 700;">{{ profile_user }}'in Profili</h2>
+        <a href="{{ url_for('dashboard') }}" class="btn">← Geri Dön</a>
+    </div>
+
+    <div style="display: flex; gap: 30px; align-items: flex-start;">
+        <div style="text-align: center;">
+            {% if user_info.profile_photo %}
+                <img src="{{ url_for('static_files', filename=user_info.profile_photo) }}" 
+                     alt="{{ profile_user }}" 
+                     style="width: 150px; height: 150px; border-radius: 50%; object-fit: cover; border: 3px solid #3498db;">
+            {% else %}
+                <div style="width: 150px; height: 150px; border-radius: 50%; background: linear-gradient(135deg, #2c3e50, #3498db); display: flex; align-items: center; justify-content: center; border: 3px solid #3498db;">
+                    <span style="font-size: 48px; color: white;">👤</span>
+                </div>
+            {% endif %}
+
+            {% if is_own_profile %}
+                <div style="margin-top: 15px;">
+                    <a href="{{ url_for('edit_profile') }}" class="btn" style="font-size: 14px; padding: 8px 16px;">Profili Düzenle</a>
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="flex: 1;">
+            <h3 style="color: #2c3e50; margin-bottom: 10px; font-weight: 600;">{{ profile_user }}</h3>
+
+            {% if user_info.bio %}
+                <div style="margin-bottom: 20px;">
+                    <h4 style="color: #3498db; margin-bottom: 10px; font-weight: 600;">Hakkında</h4>
+                    <p style="color: #7f8c8d; line-height: 1.6; background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #3498db;">{{ user_info.bio }}</p>
+                </div>
+            {% endif %}
+
+            <div style="display: flex; gap: 20px; margin-bottom: 15px;">
+                <div style="text-align: center;">
+                    <span style="font-weight: 600; color: #2c3e50; font-size: 18px;" id="follower-count">0</span>
+                    <div style="font-size: 12px; color: #7f8c8d;">Takipçi</div>
+                </div>
+                <div style="text-align: center;">
+                    <span style="font-weight: 600; color: #2c3e50; font-size: 18px;" id="post-count">0</span>
+                    <div style="font-size: 12px; color: #7f8c8d;">Gönderi</div>
+                </div>
+            </div>
+
+            <p style="color: #95a5a6; font-size: 14px;">
+                <strong>Katılma Tarihi:</strong> {{ user_info.created_at[:10] }}
+            </p>
+
+            {% if not is_own_profile %}
+        <div style="text-align: center; margin-top: 30px;">
+            <div id="friendship-actions" style="display: flex; gap: 15px; justify-content: center; flex-wrap: wrap;">
+                <button id="follow-btn" class="btn" style="font-size: 16px; padding: 12px 25px; background: #3498db;">
+                    👤 Takip Et
+                </button>
+                <button id="message-btn" class="btn" style="font-size: 16px; padding: 12px 25px;">
+                    💬 Mesaj Gönder
+                </button>
+            </div>
+        </div>
+    {% endif %}
+
+    {% if is_own_profile %}
+    <div style="margin-top: 20px; padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <h4 style="margin-bottom: 15px; color: #2c3e50;">Mesaj Ayarları</h4>
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+            <input type="checkbox" id="allow-messages-all" style="transform: scale(1.2);">
+            <span>Herkes bana mesaj gönderebilsin</span>
+        </label>
+        <p style="font-size: 12px; color: #7f8c8d; margin-top: 5px;">Bu seçenek kapalıysa, sadece takipçileriniz mesaj gönderebilir.</p>
+    </div>
+    {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if is_own_profile %}
+<div class="card">
+    <h3 style="background: linear-gradient(135deg, #2c3e50, #3498db); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 25px; font-weight: 600;">📝 Yeni Gönderi Oluştur</h3>
+
+    <form id="create-post-form" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="post-content">İçerik</label>
+            <textarea id="post-content" name="content" rows="4" placeholder="Ne düşünüyorsunuz?" style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; resize: vertical; font-family: inherit;"></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="post-media">Medya Dosyaları (Fotoğraf/Video)</label>
+            <input type="file" id="post-media" name="media_files" multiple accept="image/*,video/*" style="width: 100%; padding: 10px; border: 2px solid #e1e5e9; border-radius: 6px;">
+        </div>
+
+        <div class="form-group">
+            <label style="display: flex; align-items: center; gap: 10px; cursor: pointer;">
+                <input type="checkbox" id="post-public" name="is_public" style="transform: scale(1.2);">
+                <span>Nells'te göster (herkese açık)</span>
+            </label>
+        </div>
+
+        <button type="submit" class="btn" style="background: linear-gradient(135deg, #27ae60, #229954);">📤 Gönder</button>
+    </form>
+</div>
+{% endif %}
+
+<div class="card">
+    <h3 style="background: linear-gradient(135deg, #2c3e50, #3498db); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 25px; font-weight: 600;">📱 Gönderiler</h3>
+    <div id="user-posts" style="min-height: 100px;">
+        <div style="text-align: center; color: #7f8c8d;">🔄 Gönderiler yükleniyor...</div>
+    </div>
+</div>
+
+<script>
+const profileUser = '{{ profile_user }}';
+const isOwnProfile = {{ 'true' if is_own_profile else 'false' }};
+
+// Load follower count and post count
+function loadProfileStats() {
+    // Load follower count
+    fetch(`/get_user_posts/${profileUser}`)
+        .then(response => response.json())
+        .then(posts => {
+            document.getElementById('post-count').textContent = posts.length;
+        });
+
+    // Get follower count
+    fetch('/get_friendship_data')
+        .then(response => response.json())
+        .then(data => {
+            // Bu kısım geliştirilecek
+            document.getElementById('follower-count').textContent = '0';
+        });
+}
+
+{% if is_own_profile %}
+// Load message settings
+function loadMessageSettings() {
+    fetch('/get_friendship_data')
+        .then(response => response.json())
+        .then(data => {
+            // Get current user's settings (Bu kısım geliştirilecek)
+            document.getElementById('allow-messages-all').checked = true;
+        });
+}
+
+document.getElementById('allow-messages-all').addEventListener('change', function() {
+    fetch('/update_message_settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allow_messages_from_all: this.checked })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Ayarlar güncellendi!');
+        } else {
+            alert('❌ Hata: ' + data.error);
+        }
+    });
+});
+
+loadMessageSettings();
+{% endif %}
+
+{% if not is_own_profile %}
+function loadProfileFriendshipStatus() {
+    fetch('/get_friendship_data')
+        .then(response => response.json())
+        .then(data => {
+            const followBtn = document.getElementById('follow-btn');
+            const messageBtn = document.getElementById('message-btn');
+
+            if (data.friends && data.friends.includes(profileUser)) {
+                followBtn.textContent = '✅ Arkadaş';
+                followBtn.style.background = '#27ae60';
+                followBtn.onclick = () => removeFriend(profileUser);
+            } else if (data.sent_requests && data.sent_requests.includes(profileUser)) {
+                followBtn.textContent = '⏳ İstek Gönderildi';
+                followBtn.style.background = '#f39c12';
+                followBtn.disabled = false;
+                followBtn.onclick = () => cancelFriendRequest(profileUser);
+            } else if (data.received_requests && data.received_requests.includes(profileUser)) {
+                followBtn.textContent = '📬 İsteği Kabul Et';
+                followBtn.style.background = '#3498db';
+                followBtn.onclick = () => acceptFriendRequest(profileUser);
+            } else {
+                followBtn.textContent = '👤 Takip Et';
+                followBtn.style.background = '#3498db';
+                followBtn.disabled = false;
+                followBtn.onclick = () => sendFriendRequest(profileUser);
+            }
+
+            messageBtn.onclick = () => window.location.href = `/chat/${profileUser}`;
+        });
+}
+
+function sendFriendRequest(username) {
+    fetch('/send_friend_request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || data.error);
+        if (data.success) loadProfileFriendshipStatus();
+    });
+}
+
+function acceptFriendRequest(username) {
+    fetch('/accept_friend_request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || data.error);
+        if (data.success) loadProfileFriendshipStatus();
+    });
+}
+
+function removeFriend(username) {
+    if (!confirm(`${username} adlı kişiyi bağlantılarınızdan çıkarmak istediğinizden emin misiniz?`)) return;
+
+    fetch('/remove_friend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || data.error);
+        if (data.success) loadProfileFriendshipStatus();
+    });
+}
+
+function sendFriendRequest(username) {
+    fetch('/send_friend_request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        alert(data.message || data.error);
+        if (data.success) loadProfileFriendshipStatus();
+    });
+}
+
+function cancelFriendRequest(username) {
+    fetch('/reject_friend_request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('İstek geri çekildi');
+            loadProfileFriendshipStatus();
+        } else {
+            alert('Hata: ' + data.error);
+        }
+    });
+}
+
+loadProfileFriendshipStatus();
+{% endif %}
+
+loadProfileStats();
+
+{% if is_own_profile %}
+document.getElementById('create-post-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+
+    const formData = new FormData(this);
+
+    fetch('/create_post', {
+        method: 'POST',
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('✅ Gönderi oluşturuldu!');
+            this.reset();
+            loadUserPosts();
+        } else {
+            alert('❌ ' + (data.error || 'Bir hata oluştu'));
+        }
+    });
+});
+{% endif %}
+
+function loadUserPosts() {
+    fetch(`/get_user_posts/${profileUser}`)
+        .then(response => response.json())
+        .then(posts => {
+            const postsDiv = document.getElementById('user-posts');
+
+            if (posts.length === 0) {
+                postsDiv.innerHTML = '<div style="text-align: center; color: #7f8c8d; padding: 40px;">📝 Henüz gönderi yok</div>';
+                return;
+            }
+
+            postsDiv.innerHTML = posts.map(post => `
+                <div style="border: 1px solid #e9ecef; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: white;" data-post-id="${post.id}">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <strong style="color: #2c3e50;">${post.username}</strong>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 12px; color: #7f8c8d;">${new Date(post.created_at).toLocaleString('tr-TR')}</span>
+                            ${post.is_public ? '<span style="background: #27ae60; color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Herkese Açık</span>' : '<span style="background: #95a5a6;color: white; padding: 2px 8px; border-radius: 12px; font-size: 11px;">Sadece Profil</span>'}
+                        </div>
+                    </div>
+                    <p style="color: #2c3e50; line-height: 1.6; margin-bottom: 15px;">${post.content}</p>
+                    ${post.media_files && post.media_files.length > 0 ? `
+                        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px; margin-top: 15px;">
+                            ${post.media_files.map(file => `
+                                ${file.type === 'image' ? 
+                                    `<img src="/${file.path}" alt="${file.filename}" style="width: 100%; height: 200px; object-fit: cover; border-radius: 8px;">` :
+                                    `<video controls style="width: 100%; height: 200px; border-radius: 8px;"><source src="/${file.path}" type="video/mp4"></video>`
+                                }
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    
+                    <!-- Interaction buttons -->
+                    <div style="display: flex; align-items: center; gap: 15px; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                        ${!{{ 'true' if is_guest else 'false' }} ? `
+                            <button onclick="toggleProfileLike(${post.id})" class="profile-like-btn" data-post-id="${post.id}" style="background: none; border: none; display: flex; align-items: center; gap: 5px; cursor: pointer; color: #7f8c8d; transition: color 0.3s ease;">
+                                <span class="like-icon">🤍</span>
+                                <span class="like-count">0</span>
+                            </button>
+                            <button onclick="togglePostComments(${post.id})" style="background: none; border: none; display: flex; align-items: center; gap: 5px; cursor: pointer; color: #7f8c8d;">
+                                💬 <span class="comment-count">0</span>
+                            </button>
+                            <button onclick="sharePost(${post.id})" style="background: none; border: none; display: flex; align-items: center; gap: 5px; cursor: pointer; color: #7f8c8d;">
+                                📤 Paylaş
+                            </button>
+                        ` : ''}
+                    </div>
+                    
+                    <!-- Comments section -->
+                    <div id="comments-section-${post.id}" style="display: none; margin-top: 15px; padding-top: 15px; border-top: 1px solid #e9ecef;">
+                        <div id="comments-list-${post.id}" style="margin-bottom: 15px;"></div>
+                        ${!{{ 'true' if is_guest else 'false' }} ? `
+                            <div style="display: flex; gap: 10px;">
+                                <input type="text" id="comment-input-${post.id}" placeholder="Yorum ekle..." style="flex: 1; padding: 8px 12px; border: 1px solid #e9ecef; border-radius: 20px; outline: none;" onkeypress="handleProfileCommentKeyPress(event, ${post.id})">
+                                <button onclick="addProfileComment(${post.id})" style="background: #3498db; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer;">Gönder</button>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    ${isOwnProfile ? `<button onclick="deleteUserPost(${post.id})" class="btn" style="background-color: #e74c3c; color: white; margin-top: 10px;">Sil</button>` : ''}
+                </div>
+            `).join('');
+            
+            // Load interaction data after posts are rendered
+            setTimeout(() => {
+                loadPostInteractionData();
+            }, 100);
+        });
+}
+
+loadUserPosts();
+
+// Load post interaction data after posts are loaded
+function loadPostInteractionData() {
+    fetch(`/get_user_posts/${profileUser}`)
+        .then(response => response.json())
+        .then(posts => {
+            posts.forEach(post => {
+                // Load like and comment data for each post
+                fetch(`/get_post_data/${post.id}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const likeBtn = document.querySelector(`[data-post-id="${post.id}"].profile-like-btn`);
+                        if (likeBtn) {
+                            const icon = likeBtn.querySelector('.like-icon');
+                            const count = likeBtn.querySelector('.like-count');
+
+                            const isLiked = data.likes && data.likes.includes('{{ session.username if session.username else "" }}');
+                            icon.textContent = isLiked ? '❤️' : '🤍';
+                            count.textContent = data.like_count;
+
+                            if (isLiked) {
+                                likeBtn.style.color = '#e74c3c';
+                            }
+                        }
+
+                        const commentBtn = document.querySelector(`[onclick="togglePostComments(${post.id})"] .comment-count`);
+                        if (commentBtn) {
+                            commentBtn.textContent = data.comment_count;
+                        }
+                    });
+            });
+        });
+}
+
+// Load interaction data after a short delay to ensure posts are rendered
+setTimeout(loadPostInteractionData, 500);
+
+function deleteUserPost(postId) {
+    if (confirm('Bu gönderiyi silmek istediğinizden emin misiniz?')) {
+        fetch('/delete_post', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ post_id: postId })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('✅ Gönderi silindi');
+                loadUserPosts();
+            } else {
+                alert('❌ ' + data.error);
+            }
+        });
+    }
+}
+
+function toggleProfileLike(postId) {
+    fetch('/like_post', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: postId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const likeBtn = document.querySelector(`[data-post-id="${postId}"].profile-like-btn`);
+            const icon = likeBtn.querySelector('.like-icon');
+            const count = likeBtn.querySelector('.like-count');
+            
+            icon.textContent = data.liked ? '❤️' : '🤍';
+            count.textContent = data.like_count;
+            
+            if (data.liked) {
+                likeBtn.style.color = '#e74c3c';
+            } else {
+                likeBtn.style.color = '#7f8c8d';
+            }
+        } else {
+            alert('❌ ' + data.error);
+        }
+    });
+}
+
+function togglePostComments(postId) {
+    const commentsSection = document.getElementById(`comments-section-${postId}`);
+    if (commentsSection.style.display === 'none') {
+        commentsSection.style.display = 'block';
+        loadPostComments(postId);
+    } else {
+        commentsSection.style.display = 'none';
+    }
+}
+
+function loadPostComments(postId) {
+    fetch(`/get_post_data/${postId}`)
+        .then(response => response.json())
+        .then(data => {
+            const commentsList = document.getElementById(`comments-list-${postId}`);
+            if (data.comments && data.comments.length > 0) {
+                commentsList.innerHTML = data.comments.map(comment => `
+                    <div style="background: #f8f9fa; padding: 10px; border-radius: 8px; margin-bottom: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <strong style="color: #2c3e50;">${comment.username}</strong>
+                            <span style="font-size: 12px; color: #7f8c8d;">${new Date(comment.timestamp).toLocaleString('tr-TR')}</span>
+                        </div>
+                        <p style="color: #2c3e50; margin: 0;">${comment.comment}</p>
+                    </div>
+                `).join('');
+            } else {
+                commentsList.innerHTML = '<div style="text-align: center; color: #7f8c8d;">Henüz yorum yok</div>';
+            }
+        });
+}
+
+function addProfileComment(postId) {
+    const input = document.getElementById(`comment-input-${postId}`);
+    const comment = input.value.trim();
+    
+    if (!comment) return;
+    
+    fetch('/add_comment', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ post_id: postId, comment: comment })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            input.value = '';
+            loadPostComments(postId);
+            // Update comment count
+            const commentBtn = document.querySelector(`[onclick="togglePostComments(${postId})"] .comment-count`);
+            if (commentBtn) {
+                commentBtn.textContent = data.comment_count;
+            }
+        } else {
+            alert('❌ ' + data.error);
+        }
+    });
+}
+
+function handleProfileCommentKeyPress(event, postId) {
+    if (event.key === 'Enter') {
+        addProfileComment(postId);
+    }
+}
+
+function sharePost(postId) {
+    if (navigator.share) {
+        navigator.share({
+            title: 'ChatNell Gönderisi',
+            text: 'Bu gönderiyi beğendim!',
+            url: window.location.href
+        });
+    } else {
+        // Fallback for browsers that don't support Web Share API
+        const url = window.location.href + '#post-' + postId;
+        navigator.clipboard.writeText(url).then(() => {
+            alert('✅ Gönderi linki kopyalandı!');
+        }).catch(() => {
+            alert('📎 Link: ' + url);
+        });
+    }
+}
+</script>
+{% endblock %}

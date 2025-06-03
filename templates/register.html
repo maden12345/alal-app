@@ -1,0 +1,36 @@
+
+{% extends "base.html" %}
+
+{% block title %}Kayıt Ol - ChatNell{% endblock %}
+
+{% block content %}
+<div class="card" style="max-width: 500px; margin: 50px auto;">
+    <h2 style="text-align: center; background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 30px; font-size: 2rem;">Kayıt Ol</h2>
+    
+    <form method="POST">
+        <div class="form-group">
+            <label for="username">Kullanıcı Adı</label>
+            <input type="text" id="username" name="username" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: border-color 0.3s;">
+        </div>
+        
+        <div class="form-group">
+            <label for="password">Şifre</label>
+            <input type="password" id="password" name="password" required style="width: 100%; padding: 12px; border: 2px solid #e1e5e9; border-radius: 8px; font-size: 16px; transition: border-color 0.3s;">
+        </div>
+        
+        <button type="submit" class="btn" style="width: 100%; font-size: 16px; padding: 15px; background: linear-gradient(135deg, #667eea, #764ba2); border: none; border-radius: 8px; color: white; font-weight: 600; letter-spacing: 0.5px;">Kayıt Ol</button>
+    </form>
+    
+    <div style="text-align: center; margin-top: 20px;">
+        <p>Zaten hesabınız var mı? <a href="{{ url_for('login') }}" style="color: #667eea; text-decoration: none; font-weight: 600;">Giriş yapın</a></p>
+    </div>
+</div>
+
+<style>
+.form-group input:focus {
+    border-color: #667eea !important;
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+</style>
+{% endblock %}

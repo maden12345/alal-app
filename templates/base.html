@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ChatNell{% endblock %}</title>
+</head>
+<body style="margin: 0; padding: 0;">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+            background: #fafafa;
+            color: #1a1a1a;
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 70px 20px 0 20px;
+        }
+
+        .header {
+            background: rgba(0, 0, 0, 0.95);
+            border-bottom: 1px solid #333;
+            padding: 8px 0;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            backdrop-filter: blur(20px);
+            width: 100%;
+        }
+
+        .mobile-header .header-content {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0 15px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .mobile-nav {
+            display: flex;
+            gap: 2px;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            font-size: 18px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .nav-btn:hover, .nav-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            transform: scale(1.1);
+        }
+
+        .nav-btn.login {
+            background: rgba(23, 162, 184, 0.8);
+        }
+
+        .nav-btn.logout {
+            background: rgba(255, 71, 87, 0.8);
+        }
+
+        .mobile-user {
+            color: #17a2b8 !important;
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .profile-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            overflow: hidden;
+            display: inline-block;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+
+        .profile-btn:hover {
+            border-color: rgba(255, 255, 255, 0.6);
+            transform: scale(1.1);
+        }
+
+        .profile-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+
+        .profile-placeholder {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .notification-btn {
+            position: relative;
+        }
+
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: #ff4757;
+            color: white;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            font-size: 10px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .notifications-dropdown {
+            position: fixed;
+            top: 60px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid #333;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            min-width: 300px;
+            max-height: 400px;
+            overflow-y: auto;
+            z-index: 9999;
+            display: none;
+        }
+
+        .notification-header {
+            padding: 15px;
+            border-bottom: 1px solid #333;
+        }
+
+        .notification-header h4 {
+            margin: 0;
+            color: #fff;
+            font-size: 14px;
+        }
+
+        .notification-list {
+            padding: 10px;
+        }
+
+        .empty-notifications {
+            text-align: center;
+            color: #888;
+            padding: 20px;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: #1a1a1a;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn:hover {
+            background: #333;
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #1a1a1a;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e5e5;
+        }
+
+        .btn-danger {
+            background: #ff4757;
+        }
+
+        .btn-danger:hover {
+            background: #ff3742;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin: 24px 0;
+            border: 1px solid #e5e5e5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            color: #1a1a1a;
+            font-size: 14px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #e5e5e5;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+            font-family: inherit;
+            background: #fafafa;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            border-color: #1a1a1a;
+            outline: none;
+            background: white;
+        }
+
+        .alert {
+            padding: 16px;
+            margin: 20px 0;
+            border-radius: 8px;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        .alert-success {
+            background: #f0fff4;
+            border: 1px solid #68d391;
+            color: #2f855a;
+        }
+
+        .alert-error {
+            background: #fff5f5;
+            border: 1px solid #fc8181;
+            color: #c53030;
+        }
+
+        @media (max-width: 768px) {
+            .mobile-header .header-content {
+                padding: 0 10px;
+            }
+
+            .mobile-nav {
+                gap: 1px;
+            }
+
+            .nav-btn {
+                width: 36px;
+                height: 36px;
+                font-size: 16px;
+            }
+
+            .profile-btn {
+                width: 36px;
+                height: 36px;
+            }
+
+            .notifications-dropdown {
+                min-width: 280px;
+                right: -20px;
+            }
+
+            .container {
+                padding: 0 10px;
+            }
+
+            .card {
+                padding: 15px;
+                margin: 10px 0;
+            }
+        }
+
+        .minimal-nav {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+        }
+
+        .minimal-nav .btn {
+            font-size: 13px;
+            padding: 6px 12px;
+        }
+
+        .messages-btn {
+            background: rgba(52, 152, 219, 0.8) !important;
+            width: 48px !important;
+            height: 48px !important;
+            font-size: 20px !important;
+            margin-left: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .messages-btn:hover {
+            background: rgba(52, 152, 219, 1) !important;
+            transform: scale(1.15) !important;
+            border-color: rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body>
+    {% if session.username or session.guest %}
+    <div class="header mobile-header">
+        <div class="header-content">
+            <div class="nav mobile-nav">
+                {% if session.guest %}
+                    <div class="user-info mobile-user" style="color: #17a2b8;">👁️</div>
+                    <a href="{{ url_for('nells') }}" class="nav-btn active">📱</a>
+                    <a href="{{ url_for('logout') }}" class="nav-btn login">🔐</a>
+                {% else %}
+                    <a href="{{ url_for('dashboard') }}" class="nav-btn">🏠</a>
+                    <a href="{{ url_for('nells') }}" class="nav-btn active">📱</a>
+                    <div style="position: relative;">
+                        <button id="notifications-btn" class="nav-btn notification-btn">
+                            🔔
+                            <span id="notification-count" class="notification-badge">0</span>
+                        </button>
+                        <div id="notifications-dropdown" class="notifications-dropdown">
+                            <div class="notification-header">
+                                <h4>📬 Bildirimler</h4>
+                            </div>
+                            <div id="notification-list" class="notification-list">
+                                <div class="empty-notifications">Henüz bildirim yok</div>
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{{ url_for('profile', username=session.username) }}" class="profile-btn">
+                        <img id="header-profile-photo" src="" alt="{{ session.username }}" class="profile-img">
+                        <div id="header-profile-placeholder" class="profile-placeholder">
+                            {{ session.username[0].upper() }}
+                        </div>
+                    </a>
+                    <button onclick="confirmLogout()" class="nav-btn logout">🚪</button>
+                    <a href="{{ url_for('messages') }}" class="nav-btn messages-btn">💬</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="container">
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-success">{{ message }}</div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </div>
+    
+    {% if session.username %}
+    <script>
+    // Load profile photo for header
+    fetch('/get_user_info/{{ session.username }}')
+        .then(response => response.json())
+        .then(data => {
+            if (data.profile_photo) {
+                document.getElementById('header-profile-photo').src = '/' + data.profile_photo;
+                document.getElementById('header-profile-photo').style.display = 'block';
+                document.getElementById('header-profile-placeholder').style.display = 'none';
+            }
+        });
+
+    // Notifications dropdown
+    document.getElementById('notifications-btn').addEventListener('click', function(e) {
+        e.stopPropagation();
+        const dropdown = document.getElementById('notifications-dropdown');
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+        loadNotifications();
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function() {
+        document.getElementById('notifications-dropdown').style.display = 'none';
+    });
+
+    function loadNotifications() {
+        Promise.all([
+            fetch('/get_friend_requests'),
+            fetch('/get_notifications')
+        ])
+        .then(responses => Promise.all(responses.map(r => r.json())))
+        .then(([friendData, notifications]) => {
+            const notificationList = document.getElementById('notification-list');
+            const notificationCount = document.getElementById('notification-count');
+            
+            let allNotifications = [];
+            
+            // Add friend requests
+            if (friendData.received_requests && friendData.received_requests.length > 0) {
+                allNotifications = allNotifications.concat(friendData.received_requests.map(username => ({
+                    type: 'friend_request',
+                    username: username,
+                    message: `${username} arkadaşlık isteği gönderdi`,
+                    timestamp: new Date().toISOString()
+                })));
+            }
+            
+            // Add like/comment notifications
+            if (notifications && notifications.length > 0) {
+                allNotifications = allNotifications.concat(notifications);
+            }
+            
+            // Sort by timestamp (newest first)
+            allNotifications.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+            
+            if (allNotifications.length > 0) {
+                notificationCount.textContent = allNotifications.length;
+                notificationCount.style.display = 'flex';
+                
+                notificationList.innerHTML = allNotifications.map(notification => {
+                    if (notification.type === 'friend_request') {
+                        return `
+                            <div style="padding: 12px; border-bottom: 1px solid #333; display: flex; justify-content: space-between; align-items: center; color: #fff;">
+                                <div>
+                                    <strong style="color: #4ecdc4;">${notification.username}</strong> arkadaşlık isteği gönderdi
+                                </div>
+                                <div style="display: flex; gap: 8px;">
+                                    <button onclick="acceptRequest('${notification.username}')" style="background: #27ae60; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">Kabul Et</button>
+                                    <button onclick="rejectRequest('${notification.username}')" style="background: #e74c3c; color: white; border: none; padding: 4px 8px; border-radius: 4px; font-size: 12px; cursor: pointer;">Reddet</button>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        const icon = notification.type === 'like' ? '❤️' : '💬';
+                        const timeAgo = getTimeAgo(notification.timestamp);
+                        return `
+                            <div style="padding: 12px; border-bottom: 1px solid #333; color: #fff; cursor: pointer;" onclick="window.location.href='/profile/${notification.from_user}'">
+                                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                                    <span style="font-size: 16px;">${icon}</span>
+                                    <strong style="color: #4ecdc4;">${notification.from_user}</strong>
+                                </div>
+                                <div style="font-size: 14px; color: #ccc; margin-bottom: 4px;">
+                                    ${notification.message}
+                                </div>
+                                <div style="font-size: 12px; color: #888;">
+                                    ${timeAgo}
+                                </div>
+                            </div>
+                        `;
+                    }
+                }).join('');
+            } else {
+                notificationCount.style.display = 'none';
+                notificationList.innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">Henüz bildirim yok</div>';
+            }
+        })
+        .catch(error => {
+            console.log('Error loading notifications:', error);
+            document.getElementById('notification-count').style.display = 'none';
+            document.getElementById('notification-list').innerHTML = '<div style="text-align: center; color: #888; padding: 20px;">Bildirimler yüklenirken hata oluştu</div>';
+        });
+    }
+    
+    function getTimeAgo(timestamp) {
+        const now = new Date();
+        const time = new Date(timestamp);
+        const diffMs = now - time;
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 1) return 'Şimdi';
+        if (diffMins < 60) return `${diffMins} dakika önce`;
+        if (diffHours < 24) return `${diffHours} saat önce`;
+        return `${diffDays} gün önce`;
+    }
+
+    function acceptRequest(username) {
+        fetch('/accept_friend_request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadNotifications();
+            }
+        });
+    }
+
+    function rejectRequest(username) {
+        fetch('/reject_friend_request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ username: username })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                loadNotifications();
+            }
+        });
+    }
+
+    // Load notifications on page load
+    loadNotifications();
+
+    // Logout confirmation
+    function confirmLogout() {
+        if (confirm('Çıkış yapmak istediğinizden emin misiniz?')) {
+            window.location.href = '{{ url_for("logout") }}';
+        }
+    }
+    </script>
+    {% endif %}
+</body>
+</html>

@@ -1,0 +1,330 @@
+{% extends "base.html" %}
+
+{% block title %}{{ recipient }} ile Sohbet - ChatNell{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #eee;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <h2 style="background: linear-gradient(135deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin: 0; font-size: 1.8rem;">
+                💬 {{ recipient }} ile Sohbet
+            </h2>
+            <div id="user-status" style="font-size: 12px; padding: 4px 8px; border-radius: 12px; background: #ecf0f1; color: #7f8c8d;"></div>
+        </div>
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <input type="text" id="search-input" placeholder="🔍 Mesaj ara..." 
+                   style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 20px; font-size: 12px; width: 150px;">
+            <a href="{{ url_for('dashboard') }}" class="btn">← Geri Dön</a>
+        </div>
+    </div>
+
+    <div id="search-results" style="display: none; background: #f8f9fa; border-radius: 8px; padding: 10px; margin-bottom: 10px; max-height: 150px; overflow-y: auto;"></div>
+
+    <div id="messages-container" style="height: 450px; overflow-y: auto; border: 2px solid #eee; border-radius: 12px; padding: 20px; margin-bottom: 20px; background: linear-gradient(135deg, #f8f9fa, #ffffff);">
+        <div id="messages"></div>
+    </div>
+
+    <div style="display: flex; gap: 10px; align-items: flex-end;">
+        <div style="flex: 1;">
+            <div style="display: flex; gap: 5px; margin-bottom: 10px; flex-wrap: wrap;">
+                <button onclick="insertEmoji('😀')" class="emoji-btn">😀</button>
+                <button onclick="insertEmoji('😍')" class="emoji-btn">😍</button>
+                <button onclick="insertEmoji('😂')" class="emoji-btn">😂</button>
+                <button onclick="insertEmoji('🥰')" class="emoji-btn">🥰</button>
+                <button onclick="insertEmoji('😎')" class="emoji-btn">😎</button>
+                <button onclick="insertEmoji('🤔')" class="emoji-btn">🤔</button>
+                <button onclick="insertEmoji('👍')" class="emoji-btn">👍</button>
+                <button onclick="insertEmoji('❤️')" class="emoji-btn">❤️</button>
+                <button onclick="insertEmoji('🔥')" class="emoji-btn">🔥</button>
+                <button onclick="insertEmoji('✨')" class="emoji-btn">✨</button>
+            </div>
+            <textarea id="message-input" placeholder="Mesajınızı yazın... (Enter ile gönder, Shift+Enter ile yeni satır)" 
+                     style="width: 100%; min-height: 50px; max-height: 150px; padding: 15px; border: 2px solid #ddd; border-radius: 12px; font-size: 14px; resize: vertical; font-family: inherit;"
+                     onkeydown="handleKeyDown(event)"></textarea>
+        </div>
+        <button onclick="sendMessage()" class="btn" style="padding: 15px 25px; height: fit-content;">
+            📤 Gönder
+        </button>
+    </div>
+</div>
+
+<style>
+.emoji-btn {
+    background: none;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    padding: 5px 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: all 0.2s;
+}
+
+.emoji-btn:hover {
+    background: #f0f0f0;
+    transform: scale(1.1);
+}
+
+.message-item {
+    margin-bottom: 15px;
+    display: flex;
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.message-actions {
+    opacity: 0;
+    transition: opacity 0.2s;
+    margin-left: 10px;
+}
+
+.message-item:hover .message-actions {
+    opacity: 1;
+}
+
+.delete-btn {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    padding: 2px 6px;
+    font-size: 10px;
+    cursor: pointer;
+}
+
+.search-result {
+    padding: 8px;
+    border-bottom: 1px solid #dee2e6;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+
+.search-result:hover {
+    background: #e9ecef;
+}
+
+.typing-indicator {
+    display: none;
+    color: #666;
+    font-style: italic;
+    font-size: 12px;
+    margin: 10px 0;
+}
+</style>
+
+<script>
+const recipient = '{{ recipient }}';
+const currentUser = '{{ session.username }}';
+let lastMessageCount = 0;
+
+function updateUserStatus() {
+    fetch(`/get_user_status/${recipient}`)
+        .then(response => response.json())
+        .then(data => {
+            const statusEl = document.getElementById('user-status');
+            const statusText = data.status === 'online' ? '🟢 Çevrimiçi' : 
+                             data.status === 'away' ? '🟡 Uzakta' : '🔴 Çevrimdışı';
+            statusEl.textContent = statusText;
+            statusEl.style.background = data.status === 'online' ? '#d4edda' : 
+                                      data.status === 'away' ? '#fff3cd' : '#f8d7da';
+        });
+}
+
+function insertEmoji(emoji) {
+    const messageInput = document.getElementById('message-input');
+    const start = messageInput.selectionStart;
+    const end = messageInput.selectionEnd;
+    const text = messageInput.value;
+
+    messageInput.value = text.substring(0, start) + emoji + text.substring(end);
+    messageInput.selectionStart = messageInput.selectionEnd = start + emoji.length;
+    messageInput.focus();
+}
+
+function handleKeyDown(event) {
+    if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        sendMessage();
+    }
+}
+
+function loadMessages() {
+    fetch(`/get_messages/${recipient}`)
+        .then(response => response.json())
+        .then(messages => {
+            const messagesDiv = document.getElementById('messages');
+            const container = document.getElementById('messages-container');
+            const shouldScroll = container.scrollTop + container.clientHeight >= container.scrollHeight - 20;
+
+            messagesDiv.innerHTML = '';
+
+            messages.forEach(msg => {
+                if (msg.deleted) return;
+
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'message-item';
+                const isOwn = msg.sender === currentUser;
+
+                messageDiv.style.cssText = `
+                    justify-content: ${isOwn ? 'flex-end' : 'flex-start'};
+                `;
+
+                const messageContent = document.createElement('div');
+                messageContent.style.cssText = `
+                    max-width: 70%;
+                    padding: 15px 20px;
+                    border-radius: 20px;
+                    word-wrap: break-word;
+                    position: relative;
+                    ${isOwn ? 
+                        'background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-bottom-right-radius: 6px;' : 
+                        'background: white; color: #333; border: 1px solid #ddd; border-bottom-left-radius: 6px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);'
+                    }
+                `;
+
+                const time = new Date(msg.timestamp).toLocaleTimeString('tr-TR', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                messageContent.innerHTML = `
+                    <div style="font-weight: 600; font-size: 12px; margin-bottom: 5px; opacity: 0.8;">
+                        ${isOwn ? 'Sen' : msg.sender}
+                    </div>
+                    <div style="margin-bottom: 8px; line-height: 1.4; white-space: pre-wrap;">${msg.message}</div>
+                    <div style="font-size: 11px; opacity: 0.7; text-align: right;">${time}</div>
+                `;
+
+                messageDiv.appendChild(messageContent);
+
+                if (isOwn) {
+                    const actionsDiv = document.createElement('div');
+                    actionsDiv.className = 'message-actions';
+                    actionsDiv.innerHTML = `
+                        <button class="delete-btn" onclick="deleteMessage(${msg.id})">🗑️</button>
+                    `;
+                    messageDiv.appendChild(actionsDiv);
+                }
+
+                messagesDiv.appendChild(messageDiv);
+            });
+
+            if (shouldScroll || messages.length !== lastMessageCount) {
+                container.scrollTop = container.scrollHeight;
+            }
+            lastMessageCount = messages.length;
+        })
+        .catch(error => console.error('Error loading messages:', error));
+}
+
+function sendMessage() {
+    const messageInput = document.getElementById('message-input');
+    const message = messageInput.value.trim();
+
+    if (!message) return;
+
+    fetch('/send_message', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+            recipient: recipient,
+            message: message 
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            messageInput.value = '';
+            messageInput.style.height = '50px';
+            loadMessages();
+        } else {
+            alert('Mesaj gönderilemedi: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error sending message:', error);
+        alert('Mesaj gönderilirken hata oluştu');
+    });
+}
+
+function deleteMessage(messageId) {
+    if (!confirm('Bu mesajı silmek istediğinizden emin misiniz?')) return;
+
+    fetch('/delete_message', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            message_id: messageId
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            loadMessages();
+        } else {
+            alert('Mesaj silinemedi: ' + data.error);
+        }
+    });
+}
+
+function searchMessages() {
+    const query = document.getElementById('search-input').value.trim();
+    const resultsDiv = document.getElementById('search-results');
+
+    if (query.length < 2) {
+        resultsDiv.style.display = 'none';
+        return;
+    }
+
+    fetch(`/search_messages?q=${encodeURIComponent(query)}&recipient=${recipient}`)
+        .then(response => response.json())
+        .then(results => {
+            if (results.length > 0) {
+                resultsDiv.style.display = 'block';
+                resultsDiv.innerHTML = '<strong>🔍 Arama Sonuçları:</strong><br>' +
+                    results.map(msg => `
+                        <div class="search-result">
+                            <strong>${msg.sender}:</strong> ${msg.message.substring(0, 50)}${msg.message.length > 50 ? '...' : ''}
+                            <small style="color: #666; display: block;">${new Date(msg.timestamp).toLocaleString('tr-TR')}</small>
+                        </div>
+                    `).join('');
+            } else {
+                resultsDiv.style.display = 'block';
+                resultsDiv.innerHTML = '<em>Sonuç bulunamadı</em>';
+            }
+        });
+}
+
+// Auto-resize textarea
+document.getElementById('message-input').addEventListener('input', function() {
+    this.style.height = '50px';
+    this.style.height = Math.min(this.scrollHeight, 150) + 'px';
+});
+
+// Search functionality
+document.getElementById('search-input').addEventListener('input', searchMessages);
+
+// Close search results when clicking outside
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#search-input') && !e.target.closest('#search-results')) {
+        document.getElementById('search-results').style.display = 'none';
+    }
+});
+
+// Load messages on page load
+loadMessages();
+updateUserStatus();
+
+// Refresh messages and status periodically
+setInterval(loadMessages, 3000);
+setInterval(updateUserStatus, 10000);
+
+// Focus on input
+document.getElementById('message-input').focus();
+</script>
+{% endblock %}
